@@ -8,8 +8,8 @@
   box-sizing: border-box;
 
   font-family: system-ui, -apple-system, sans-serif;
-  background: #0f172a;
-  color: white;
+  background: #7b849c;
+  color: black;
 
   min-height: 100vh;
 }
@@ -41,7 +41,7 @@
   font-weight: bold;
   margin: 0;
   text-align: center;
-  background: linear-gradient(90deg, #00ffcc, #00aaff);
+  background: #8c2103;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -84,7 +84,7 @@
   gap: 1rem;
   width: 100%;
   max-width: 320px;
-  background: #1e293b;
+  background: #8f9ab5;
   padding: 1.5rem 2rem;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
@@ -125,8 +125,35 @@
   margin-top: 0.25rem;
 }
 
+/* ========================= */
+/* AUTH INPUT STYLING */
+/* ========================= */
+
+.upload-container input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;              /* ✅ Rounded square */
+  border: 2px solid #334155;
+  background-color: #1e293b;
+  color: white;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+/* Focus effect */
+.upload-container input:focus {
+  border-color: #00ffcc;
+  box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+}
+
+/* Placeholder styling */
+.upload-container input::placeholder {
+  color: #94a3b8;
+}
+
 .upload-button {
-  background: linear-gradient(90deg, #00ffcc, #00aaff);
+  background:  #a81103;
   border: none;
   padding: 0.8rem 1.6rem;
   border-radius: 10px;
@@ -180,7 +207,7 @@
   aspect-ratio: 4 / 3;
   max-height: 500px;
   margin: 0 auto;
-  background: #111827;
+  background: #7b849c;
   border-radius: 20px;
   overflow: hidden;
   border: 2px solid #1e293b;
@@ -238,4 +265,65 @@
 
 .upload-button + .upload-button {
   margin-top: 0.5rem;
+}
+
+/* Remove default browser margins and ensure full height */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.app-layout {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  background-color: #7b849c; /* Or your preferred dark theme */
+}
+
+/* Make the header span the full width */
+.app-header {
+  width: 100%;
+  padding: 1rem 2rem;
+  box-sizing: border-box;
+}
+
+/* This is likely where the 'gap' is coming from. 
+   Remove max-width and set width to 100% */
+.route-result-wrapper {
+  width: 100%;
+  max-width: none; /* Removes any horizontal limit */
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Keeps the content centered but the container wide */
+  padding: 0;
+}
+
+/* Make the canvas/image container take up the available space */
+.route-display {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  overflow: hidden; /* Prevents unwanted scrollbars */
+}
+
+.route-result-image {
+  width: 100%; /* Or auto if you want to maintain aspect ratio without stretching */
+  height: auto;
+  display: block;
+}
+
+.route-result-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }

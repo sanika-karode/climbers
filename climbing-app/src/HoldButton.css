@@ -1,0 +1,29 @@
+.hold-button {
+  width: 160px;
+  height: 160px;
+
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  border: none;
+  background-color: transparent;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: transform 0.2s ease;
+}
+
+.hold-button:hover {
+  transform: scale(1.1);
+}
+
+.hold-text {
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 0 8px black;
+}
