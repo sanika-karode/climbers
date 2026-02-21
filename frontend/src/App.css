@@ -1,42 +1,125 @@
 #root {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background: linear-gradient(135deg, #1e1e2f, #2b2b45);
+  min-height: 100vh;
+  color: white;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Title */
+.app-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  letter-spacing: 1px;
 }
 
-@keyframes logo-spin {
+/* Upload Section */
+.upload-container {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.upload-container input[type="file"] {
+  margin-top: 1rem;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: none;
+  background: #444;
+  color: white;
+  cursor: pointer;
+}
+
+.upload-container button {
+  margin-top: 1rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  background: #ff7a18;
+  background: linear-gradient(90deg, #ff7a18, #ffb347);
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.upload-container button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(255, 122, 24, 0.4);
+}
+
+/* Route Display Area */
+.route-display {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  background: #111;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Simulated Climbing Wall Background */
+.route-display::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 30%, #333 2%, transparent 2%),
+              radial-gradient(circle at 70% 60%, #333 2%, transparent 3%),
+              radial-gradient(circle at 50% 80%, #333 2%, transparent 3%);
+  background-size: 150px 150px;
+  opacity: 0.2;
+}
+
+/* Optimized Route Line */
+.route-path {
+  position: absolute;
+  width: 4px;
+  height: 100%;
+  left: 50%;
+  background: linear-gradient(to bottom, #00ffcc, #00aaff);
+  transform-origin: top;
+  animation: drawRoute 4s ease forwards;
+}
+
+/* Route animation */
+@keyframes drawRoute {
   from {
-    transform: rotate(0deg);
+    transform: scaleY(0);
   }
   to {
-    transform: rotate(360deg);
+    transform: scaleY(1);
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+/* Animated glowing nodes (holds) */
+.hold {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: #ff4d6d;
+  border-radius: 50%;
+  box-shadow: 0 0 15px rgba(255, 77, 109, 0.8);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
   }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
 }
