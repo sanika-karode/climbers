@@ -15,8 +15,8 @@ def test_climbing_logic():
     print(h1.id)
 
     # 2. Setup Two Different Climbers
-    tall_climber = Climber(height_cm=500.0, experience="advanced")
-    short_climber = Climber(height_cm=160.0, experience="beginner")
+    tall_climber = Climber(height_cm=500.0, experience="advanced", arm_span=1000)
+    short_climber = Climber(height_cm=160.0, experience="beginner", arm_span = 100)
 
     # 3. Test Tall Climber
     print("--- Testing Tall Climber ---")

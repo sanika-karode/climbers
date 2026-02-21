@@ -6,6 +6,8 @@ from graphs.models import *
 from graphs.encodings import *
 from graphs.graph_builder import *
 
+WALL_HEIGHT_METERS = 4.0
+
 def get_dist(G: nx.DiGraph, id1: int, id2: int) -> float:
     h1 = G.nodes[id1]['data']
     h2 = G.nodes[id2]['data']
@@ -27,9 +29,10 @@ def aStar(G: nx.DiGraph, climber: Climber, start_id: int, end_id: int) -> Option
             return path
 
         #check if this makes sense
-        if current_state in visited and visited[current_state] <= g:
+        state_key = tuple(sorted(current_state))
+        if state_key in visited and visited[state_key] <= g:
             continue
-
+        visited[state_key] = g
         #best left hand move
         if left_id != end_id:
             for next_left in G.neighbors(left_id):
@@ -38,7 +41,7 @@ def aStar(G: nx.DiGraph, climber: Climber, start_id: int, end_id: int) -> Option
                     edge_weight = G[left_id][next_left]['weight']
                     new_g = g + edge_weight
 
-                    h_val = min(get_dist(G, next_left, end_id), get_dist(G, right_id, end_id))
+                    h_val = (get_dist(G, next_left, end_id) + get_dist(G, right_id, end_id))
 
                     heapq.heappush(pq, (new_g + h_val,new_g, new_state, path + [next_left] ))
 
@@ -50,7 +53,7 @@ def aStar(G: nx.DiGraph, climber: Climber, start_id: int, end_id: int) -> Option
                     edge_weight = G[right_id][next_right]['weight']
                     new_g = g + edge_weight
 
-                    h_val = min(get_dist(G, next_right, end_id), get_dist(G, left_id, end_id))
+                    h_val = (get_dist(G, next_right, end_id) + get_dist(G, left_id, end_id))
 
                     heapq.heappush(pq, (new_g + h_val,new_g, new_state, path + [next_right] ))
 

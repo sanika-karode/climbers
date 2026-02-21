@@ -8,9 +8,9 @@ from graphs.models import *
 def distance(h1: Hold, h2: Hold) -> float:
     return math.sqrt((h1.x-h2.x)**2 + (h1.y-h2.y)**2)
 
-def valid_move(current_hold, candidate_hold, max_reach):
+def valid_move(current_hold, candidate_hold, max_reach) -> bool:
     d = distance(current_hold, candidate_hold)
-    return d <= max_reach * 1.1
+    return d <= (max_reach * 1.1)
 
 def get_penalty(dist: float, h1: Hold, h2: Hold, climber: Climber) -> float:
     hold_type_penalty = hold_penalty(h2.hold_type)
