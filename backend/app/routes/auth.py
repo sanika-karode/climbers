@@ -1,31 +1,14 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
-from app.db.database import SessionLocal
+from app.db.database import get_db
 from app.models.user import User
+from app.models.schemas import UserCreate
 from app.core.auth import hash_password, verify_password, create_access_token
 
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-class UserCreate(BaseModel):
-    username: str
-    password: str
-    height: float
-    experience: str
-    armspan: float
-
-
 
 @router.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):

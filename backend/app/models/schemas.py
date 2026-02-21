@@ -48,3 +48,19 @@ class TokenData(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    height: float
+    experience: str
+    armspan: float
+
+class HoldCreate(BaseModel):
+    x_position: float
+    y_position: float
+    hold_type: Optional[str] = "unknown"
+
+class WallCreateResponse(BaseModel):
+    wall_id: int
+    message: str

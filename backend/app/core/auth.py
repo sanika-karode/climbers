@@ -6,6 +6,8 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from app.models.schemas import TokenData
+from app.db.database import Session, get_db
+from app.models.user import User
 import os
 from dotenv import load_dotenv
 
@@ -13,7 +15,7 @@ from dotenv import load_dotenv
 # CONFIGURATION
 # ==============================
 
-load_dotenv()
+load_dotenv("shh.env")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
@@ -71,7 +73,7 @@ def decode_access_token(token: str):
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     payload = decode_access_token(token)
 
     if payload is None:
@@ -89,5 +91,12 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    token_data = TokenData(username=username)
-    return token_data
+    user = db.query(User).filter(User.username == username).first()
+    
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    return user
