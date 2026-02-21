@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import "./App.css";
+import appBackground from "./assets/appBackground.png";
 
 /* =========================
    AUTH STORAGE
@@ -43,28 +44,27 @@ export default function App() {
     setAuthUser(null);
   };
 
-  if (!user) {
-    return <AuthPage onLogin={handleLogin} />;
-  }
-
-  if (routeData) {
-    return (
-      <ResultPage
-        image={routeData.image}
-        holds={routeData.holds}
-        onBack={() => setRouteData(null)}
-      />
-    );
-  }
-
   return (
-    <AnalyzePage
-      user={user}
-      onLogout={handleLogout}
-      onAnalyze={(image, holds) =>
-        setRouteData({ image, holds })
-      }
-    />
+    <>
+      <div className="app-background" style={{ backgroundImage: `url(${appBackground})` }} aria-hidden />
+      {!user && <AuthPage onLogin={handleLogin} />}
+      {user && routeData && (
+        <ResultPage
+          image={routeData.image}
+          holds={routeData.holds}
+          onBack={() => setRouteData(null)}
+        />
+      )}
+      {user && !routeData && (
+        <AnalyzePage
+          user={user}
+          onLogout={handleLogout}
+          onAnalyze={(image, holds) =>
+            setRouteData({ image, holds })
+          }
+        />
+      )}
+    </>
   );
 }
 
@@ -219,16 +219,14 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
   const handleCanvasClick = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    setHolds((prev) => [...prev, { x, y }]);
+    const xNorm = (e.clientX - rect.left) / rect.width;
+    const yNorm = (e.clientY - rect.top) / rect.height;
+    setHolds((prev) => [...prev, { x: xNorm, y: yNorm }]);
   };
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !image) return;
 
     const ctx = canvas.getContext("2d");
     canvas.width = canvas.offsetWidth;
@@ -237,13 +235,16 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     holds.forEach((hold, index) => {
+      const px = hold.x * canvas.width;
+      const py = hold.y * canvas.height;
       ctx.beginPath();
-      ctx.arc(hold.x, hold.y, 8, 0, 2 * Math.PI);
+      ctx.arc(px, py, 8, 0, 2 * Math.PI);
       ctx.fillStyle = "#00ffcc";
       ctx.fill();
 
       ctx.fillStyle = "white";
-      ctx.fillText(index + 1, hold.x - 4, hold.y - 12);
+      ctx.font = "12px sans-serif";
+      ctx.fillText(index + 1, px - 4, py - 12);
     });
   }, [holds, image]);
 
@@ -251,10 +252,6 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
     <div className="app-layout">
       <header className="app-header">
         <h1 className="app-title">ClimbPath AI</h1>
-
-        <button className="logout-button" onClick={onLogout}>
-          Logout
-        </button>
       </header>
 
       <div className="app-upload">
@@ -265,26 +262,16 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
 
           {holds.length > 0 && (
             <>
-              <button
-                className="upload-button"
-                onClick={() => setHolds((p) => p.slice(0, -1))}
-              >
+              <button type="button" className="upload-button" onClick={() => setHolds((p) => p.slice(0, -1))}>
                 Undo
               </button>
 
-              <button
-                className="upload-button"
-                onClick={() => setHolds([])}
-              >
+              <button type="button" className="upload-button" onClick={() => setHolds([])}>
                 Clear
               </button>
 
-              {/* 🔥 ANALYZE BUTTON */}
               {holds.length >= 2 && (
-                <button
-                  className="upload-button upload-button-primary"
-                  onClick={() => onAnalyze(image, holds)}
-                >
+                <button type="button" className="upload-button upload-button-primary" onClick={() => onAnalyze(image, holds)}>
                   Analyze Route
                 </button>
               )}
@@ -310,6 +297,12 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
           </div>
         </div>
       )}
+
+      <div className="logout-footer">
+        <button type="button" className="upload-button" onClick={onLogout}>
+          Log out
+        </button>
+      </div>
     </div>
   );
 }
@@ -319,57 +312,128 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
 ========================= */
 
 function ResultPage({ image, holds, onBack }) {
+  const containerRef = useRef(null);
   const canvasRef = useRef(null);
+  const imgRef = useRef(null);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const img = imgRef.current;
+    if (!canvas || !img || !img.naturalWidth) return;
 
-    const img = new Image();
-    img.src = image;
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
 
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
+    const cw = rect.width;
+    const ch = rect.height;
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+    const scale = Math.min(cw / iw, ch / ih);
+    const drawW = iw * scale;
+    const drawH = ih * scale;
+    const offsetX = (cw - drawW) / 2;
+    const offsetY = (ch - drawH) / 2;
 
-      const ctx = canvas.getContext("2d");
+    const toCanvas = (x, y) => ({
+      x: x * drawW + offsetX,
+      y: y * drawH + offsetY,
+    });
 
-      ctx.drawImage(img, 0, 0);
+    canvas.width = cw;
+    canvas.height = ch;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, cw, ch);
 
-      // 🔥 DRAW LINE THROUGH ALL HOLDS
-      if (holds.length >= 2) {
-        ctx.strokeStyle = "red";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-
-        ctx.moveTo(holds[0].x, holds[0].y);
-
-        for (let i = 1; i < holds.length; i++) {
-          ctx.lineTo(holds[i].x, holds[i].y);
-        }
-
-        ctx.stroke();
+    if (holds.length >= 2) {
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      const first = toCanvas(holds[0].x, holds[0].y);
+      ctx.moveTo(first.x, first.y);
+      for (let i = 1; i < holds.length; i++) {
+        const p = toCanvas(holds[i].x, holds[i].y);
+        ctx.lineTo(p.x, p.y);
       }
+      ctx.stroke();
+    }
 
-      // Draw points
-      holds.forEach((hold) => {
-        ctx.beginPath();
-        ctx.arc(hold.x, hold.y, 8, 0, 2 * Math.PI);
-        ctx.fillStyle = "yellow";
-        ctx.fill();
-      });
-    };
+    holds.forEach((h) => {
+      const { x, y } = toCanvas(h.x, h.y);
+      ctx.fillStyle = "yellow";
+      ctx.beginPath();
+      ctx.arc(x, y, 8, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+  }, [image, holds, imgLoaded]);
+
+  const drawResult = useCallback(() => {
+    const canvas = canvasRef.current;
+    const img = imgRef.current;
+    if (!canvas || !img || !img.naturalWidth) return;
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cw = rect.width;
+    const ch = rect.height;
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+    const scale = Math.min(cw / iw, ch / ih);
+    const drawW = iw * scale;
+    const drawH = ih * scale;
+    const offsetX = (cw - drawW) / 2;
+    const offsetY = (ch - drawH) / 2;
+    const toCanvas = (x, y) => ({ x: x * drawW + offsetX, y: y * drawH + offsetY });
+    canvas.width = cw;
+    canvas.height = ch;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, cw, ch);
+    if (holds.length >= 2) {
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      const first = toCanvas(holds[0].x, holds[0].y);
+      ctx.moveTo(first.x, first.y);
+      for (let i = 1; i < holds.length; i++) {
+        const p = toCanvas(holds[i].x, holds[i].y);
+        ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+    }
+    holds.forEach((h) => {
+      const { x, y } = toCanvas(h.x, h.y);
+      ctx.fillStyle = "yellow";
+      ctx.beginPath();
+      ctx.arc(x, y, 8, 0, 2 * Math.PI);
+      ctx.fill();
+    });
   }, [image, holds]);
+
+  useEffect(() => {
+    const ro = new ResizeObserver(drawResult);
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [drawResult]);
 
   return (
     <div className="app-layout">
-      <h2>✨ This is the most optimized route ✨</h2>
+      <h2 className="result-page-title">✨ This is the most optimized route ✨</h2>
 
-      <canvas ref={canvasRef} />
+      <div className="route-result-wrapper">
+        <div className="route-display route-result" ref={containerRef}>
+          <img ref={imgRef} src={image} alt="Wall" className="route-result-image" onLoad={() => setImgLoaded(true)} />
+          <canvas ref={canvasRef} className="route-result-canvas" aria-hidden />
+        </div>
+      </div>
 
-      <button className="upload-button" onClick={onBack}>
-        Back
-      </button>
+      <div className="result-actions">
+        <button type="button" className="upload-button" onClick={onBack}>
+          Back
+        </button>
+      </div>
     </div>
   );
 }

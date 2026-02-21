@@ -1,5 +1,15 @@
 /* ===== ROOT LAYOUT ===== */
 
+.app-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #7b849c;
+}
+
 #root {
   width: 100%;
   max-width: 900px;
@@ -8,7 +18,6 @@
   box-sizing: border-box;
 
   font-family: system-ui, -apple-system, sans-serif;
-  background: #7b849c;
   color: black;
 
   min-height: 100vh;
@@ -17,6 +26,8 @@
 /* ===== APP LAYOUT ===== */
 
 .app-layout {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -37,6 +48,7 @@
 }
 
 .app-title {
+  font-family: "Luckiest Guy", cursive;
   font-size: 3rem;
   font-weight: bold;
   margin: 0;
@@ -167,6 +179,11 @@
   opacity: 0.9;
 }
 
+.upload-button-primary {
+  background: linear-gradient(90deg, #00ffcc, #00aaff);
+  color: #0f172a;
+}
+
 .upload-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
@@ -179,7 +196,7 @@
   color: #f87171;
 }
 
-/* ===== ROUTE RESULT (image + path overlay) ===== */
+/* ===== ROUTE RESULT (image + path overlay) - same structure for upload AND result ===== */
 
 .route-result-wrapper {
   flex-shrink: 0;
@@ -201,26 +218,23 @@
   color: #94a3b8;
 }
 
+/* Shared image container - same on upload view and result page */
 .route-display.route-result {
   position: relative;
   width: 100%;
+  max-width: 600px;
   aspect-ratio: 4 / 3;
   max-height: 500px;
   margin: 0 auto;
-  background: #7b849c;
+  background: #1e293b;
   border-radius: 20px;
   overflow: hidden;
-  border: 2px solid #1e293b;
-}
-
-.route-display.route-result::before {
-  display: none;
+  border: 2px solid #334155;
 }
 
 .route-result-image {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -229,8 +243,7 @@
 
 .route-result-canvas {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
@@ -240,31 +253,32 @@
   pointer-events: auto;
   cursor: crosshair;
 }
-/* ===== CANVAS FIXES ===== */
-
-.route-display.route-result {
-  position: relative;
-}
-
-.route-result-image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.route-result-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
 
 /* ===== BUTTON SPACING POLISH ===== */
 
 .upload-button + .upload-button {
   margin-top: 0.5rem;
+}
+
+/* ===== LOGOUT FOOTER (bottom of page) ===== */
+
+.logout-footer {
+  margin-top: auto;
+  padding: 2rem 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* ===== RESULT PAGE ACTIONS ===== */
+
+.result-page-title {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+}
+
+.result-actions {
+  padding: 1.5rem 0;
 }
 
 /* Remove default browser margins and ensure full height */
@@ -282,7 +296,7 @@ html, body, #root {
   flex-direction: column;
   margin: 0;
   padding: 0;
-  background-color: #7b849c; /* Or your preferred dark theme */
+  background-color: transparent;
 }
 
 /* Make the header span the full width */
@@ -292,38 +306,12 @@ html, body, #root {
   box-sizing: border-box;
 }
 
-/* This is likely where the 'gap' is coming from. 
-   Remove max-width and set width to 100% */
 .route-result-wrapper {
   width: 100%;
-  max-width: none; /* Removes any horizontal limit */
-  flex-grow: 1;
+  max-width: 600px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Keeps the content centered but the container wide */
+  align-items: center;
   padding: 0;
-}
-
-/* Make the canvas/image container take up the available space */
-.route-display {
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  display: flex;
-  justify-content: center;
-  overflow: hidden; /* Prevents unwanted scrollbars */
-}
-
-.route-result-image {
-  width: 100%; /* Or auto if you want to maintain aspect ratio without stretching */
-  height: auto;
-  display: block;
-}
-
-.route-result-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
 }
