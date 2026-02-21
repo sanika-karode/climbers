@@ -13,3 +13,4 @@ class Hold:
 class Climber:
     height_cm: float
     experience: str
+    arm_span: float
