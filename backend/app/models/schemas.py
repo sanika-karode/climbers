@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Literal, Optional
 
-LimbType = Literal["left_hand", "right_hand", "left_foot", "right_foot"]
+LimbType = Literal["left_hand", "right_hand"]
 
 class Hold(BaseModel):
     id: int
@@ -9,6 +9,7 @@ class Hold(BaseModel):
     y: float
     hold_type: Literal["jug", "crimp", "sloper", "pinch", "volume"]
     size: float
+    role: Literal["start", "end", "middle"]
 
 class Wall(BaseModel):
     holds: List[Hold]
@@ -21,8 +22,6 @@ class Climber(BaseModel):
 class BodyState(BaseModel):
     left_hand: int
     right_hand: int
-    left_foot: int
-    right_foot: int
 
 class RouteRequest(BaseModel):
     wall: Wall
@@ -42,3 +41,10 @@ class RouteResponse(BaseModel):
     route: List[RouteStep]
     total_cost: float
     estimated_grade: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

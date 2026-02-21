@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from app.core.auth import get_current_user
 from app.models.schemas import RouteRequest, RouteResponse
 from app.services.route_service import generate_route
 
