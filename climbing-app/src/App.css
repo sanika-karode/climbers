@@ -1,0 +1,124 @@
+/* ===== ROOT LAYOUT ===== */
+
+#root {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #0f172a;
+  color: white;
+  min-height: 100vh;
+  text-align: center;
+}
+
+/* ===== TITLE ===== */
+
+.app-title {
+  font-size: 2.8rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  background: linear-gradient(90deg, #00ffcc, #00aaff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===== UPLOAD SECTION ===== */
+
+.upload-container {
+  background: #1e293b;
+  padding: 2rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.upload-container input[type="file"] {
+  display: block;
+  margin: 1rem auto;
+  padding: 0.6rem;
+  background: #334155;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.upload-button {
+  background: linear-gradient(90deg, #00ffcc, #00aaff);
+  border: none;
+  padding: 0.8rem 1.6rem;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.upload-button:hover {
+  transform: translateY(-3px);
+  opacity: 0.9;
+}
+
+/* ===== ROUTE VISUALIZATION SCREEN ===== */
+
+.route-display {
+  position: relative;
+  height: 500px;
+  background: #111827;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid #1e293b;
+}
+
+/* Background texture (rock wall effect) */
+.route-display::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #374151 2px, transparent 2px);
+  background-size: 80px 80px;
+  opacity: 0.3;
+}
+
+/* ===== OPTIMIZED ROUTE PATH ===== */
+
+.route-path {
+  position: absolute;
+  width: 4px;
+  height: 100%;
+  left: 50%;
+  background: linear-gradient(to bottom, #00ffcc, #00aaff);
+  transform-origin: top;
+  animation: drawRoute 4s ease forwards;
+  border-radius: 10px;
+}
+
+@keyframes drawRoute {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* ===== MOVING CLIMBER DOT ===== */
+
+.climber-dot {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: #ff4d6d;
+  border-radius: 50%;
+  box-shadow: 0 0 15px #ff4d6d;
+  animation: climbPath 4s linear forwards;
+}
+
+/* Animation moving upward */
+@keyframes climbPath {
+  from {
+    top: 90%;
+    left: 50%;
+  }
+  to {
+    top: 10%;
+    left: 50%;
+  }
+}
