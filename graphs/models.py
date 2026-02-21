@@ -11,4 +11,5 @@ class Hold:
 
 @dataclass
 class Climber:
-    height_cs: float
+    height_cm: float
+    experience: str
