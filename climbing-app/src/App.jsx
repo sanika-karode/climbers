@@ -2,7 +2,7 @@ function App() {
   return (
     <>
       <h1 className="app-title">
-        ClimbAI – Optimal Route Analyzer
+        Climb
       </h1>
 
       <div className="upload-container">

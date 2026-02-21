@@ -4,19 +4,36 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
+
   font-family: system-ui, -apple-system, sans-serif;
   background: #0f172a;
   color: white;
+
   min-height: 100vh;
+
+  /* 👇 Center everything vertically + horizontally */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
   text-align: center;
 }
 
 /* ===== TITLE ===== */
 
 .app-title {
-  font-size: 2.8rem;
+  font-size: 3rem;
   font-weight: bold;
-  margin-bottom: 1rem;
+  margin: 0 auto 2rem auto;
+
+  /* Center it */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+
   background: linear-gradient(90deg, #00ffcc, #00aaff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
