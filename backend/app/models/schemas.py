@@ -7,7 +7,7 @@ class Hold(BaseModel):
     id: int
     x: float
     y: float
-    hold_type: Literal["jug", "crimp", "sloper", "pinch", "volume"]
+    hold_type: Literal["jug", "crimp", "sloper", "pinch"]
     #size: float
     role: Literal["start", "end", "middle"]
 
