@@ -3,12 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.route import router as route_router
 from fastapi import FastAPI
 from app.db.database import engine, Base
-from app.routes import auth_routes
+from app.routes import auth
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
 
-app.include_router(auth_routes.router)
+app.include_router(auth.router)
 
 app = FastAPI(title="Climbing Route API", version="1.0.0")
 

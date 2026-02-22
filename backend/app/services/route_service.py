@@ -1,5 +1,5 @@
 from app.models.schemas import RouteRequest, RouteResponse, RouteStep
-from graph_engine.planner import generate_route_plan
+from graphs.planner import generate_route_plan
 
 
 #   assuming backend is from graph_engine/planner.py and
@@ -15,10 +15,11 @@ def generate_route(request: RouteRequest) -> RouteResponse:
     # -----------------------------
     # Call Graph Engine
     # -----------------------------
-    result = generate_route_plan(
+    result = generate_route_plan (
         wall=request.wall,
         climber=request.climber,
-        start_hold_id=request.start_hold_id,
+        start_left_hold_id=request.start_left_hold_id,
+        start_right_hold_id=request.start_right_hold_id,
         end_hold_id=request.end_hold_id,
     )
 
@@ -28,10 +29,11 @@ def generate_route(request: RouteRequest) -> RouteResponse:
     steps = [
         RouteStep(
             step_number=i + 1,
+            moved_limb=step["moved_limb"],
             from_hold=step["from_hold"],
             to_hold=step["to_hold"],
-            limb=step["limb"],
             move_type=step["move_type"],
+            cost=step["cost"],
         )
         for i, step in enumerate(result["route"])
     ]
@@ -39,6 +41,5 @@ def generate_route(request: RouteRequest) -> RouteResponse:
     return RouteResponse(
         route=steps,
         total_cost=result["total_cost"],
-        difficulty_score=result["difficulty_score"],
         estimated_grade=result["estimated_grade"],
     )

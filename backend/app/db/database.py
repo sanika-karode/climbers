@@ -3,7 +3,13 @@ from sqlalchemy.orm import sessionmaker, declarative_base, Session
 import os
 from dotenv import load_dotenv
 
-load_dotenv("shh.env")
+#load_dotenv("shh.env")
+from pathlib import Path
+
+# database.py is at backend/app/db/database.py
+# shh.env is at backend/shh.env
+_env_path = Path(__file__).resolve().parent.parent.parent / "shh.env"
+load_dotenv(_env_path)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 

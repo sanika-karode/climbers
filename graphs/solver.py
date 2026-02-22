@@ -7,7 +7,7 @@ from graphs.encodings import *
 #need routestep from api
 def generate_instruction(G : nx.DiGraph, path_states: List[Tuple[int, int]], climber: Climber) -> List[RouteStep]:
     steps = []
-    max_reach = compute_reach(climber.height_cm)
+    max_reach = climber.arm_span
 
     for i in range(1, len(path_states)):
         prev_l, prev_r = path_states[i-1]
