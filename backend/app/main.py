@@ -11,12 +11,13 @@ from app.routes.auth import router as auth_router
 from app.routes.route import router as route_router
 from app.routes import auth
 
-app = FastAPI()
+app = FastAPI(title="Climbing Route API", version="1.0.0")
+
 Base.metadata.create_all(bind=engine)
 
 app.include_router(auth.router)
 
-app = FastAPI(title="Climbing Route API", version="1.0.0")
+
 
 
 @app.exception_handler(Exception)
