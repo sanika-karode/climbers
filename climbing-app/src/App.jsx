@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import "./App.css";
 import appBackground from "./assets/appBackground.png";
 
@@ -653,57 +653,25 @@ function ResultPage({ image, holds, holdType, leftHoldIndex, rightHoldIndex, rou
   const imgRef = useRef(null);
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const img = imgRef.current;
-    if (!canvas || !img || !img.naturalWidth) return;
+  const getPosByHoldId = useCallback((holdId) => {
+    const idx = holdId - 1;
+    if (idx < 0 || idx >= holds.length) return null;
+    return holds[idx];
+  }, [holds]);
 
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const cw = rect.width;
-    const ch = rect.height;
-    const iw = img.naturalWidth;
-    const ih = img.naturalHeight;
-    const scale = Math.min(cw / iw, ch / ih);
-    const drawW = iw * scale;
-    const drawH = ih * scale;
-    const offsetX = (cw - drawW) / 2;
-    const offsetY = (ch - drawH) / 2;
-
-    const toCanvas = (x, y) => ({
-      x: x * drawW + offsetX,
-      y: y * drawH + offsetY,
-    });
-
-    canvas.width = cw;
-    canvas.height = ch;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, cw, ch);
-
-    if (holds.length >= 2) {
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 4;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.beginPath();
-      const first = toCanvas(holds[0].x, holds[0].y);
-      ctx.moveTo(first.x, first.y);
-      for (let i = 1; i < holds.length; i++) {
-        const p = toCanvas(holds[i].x, holds[i].y);
-        ctx.lineTo(p.x, p.y);
-      }
-      ctx.stroke();
+  const holdColorByHand = useMemo(() => {
+    const map = {};
+    const startLeftId = leftHoldIndex + 1;
+    const startRightId = rightHoldIndex + 1;
+    map[startLeftId] = "left";
+    map[startRightId] = "right";
+    if (route && Array.isArray(route)) {
+      route.forEach((step) => {
+        map[step.to_hold] = step.moved_limb === "left_hand" ? "left" : "right";
+      });
     }
-
-    holds.forEach((h) => {
-      const { x, y } = toCanvas(h.x, h.y);
-      ctx.fillStyle = "yellow";
-      ctx.beginPath();
-      ctx.arc(x, y, 8, 0, 2 * Math.PI);
-      ctx.fill();
-    });
-  }, [image, holds, imgLoaded]);
+    return map;
+  }, [route, leftHoldIndex, rightHoldIndex]);
 
   const drawResult = useCallback(() => {
     const canvas = canvasRef.current;
@@ -725,34 +693,54 @@ function ResultPage({ image, holds, holdType, leftHoldIndex, rightHoldIndex, rou
     canvas.height = ch;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, cw, ch);
-    if (holds.length >= 2) {
-      ctx.strokeStyle = "red";
+
+    if (route && route.length > 0) {
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
       ctx.lineWidth = 4;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-      ctx.beginPath();
-      const first = toCanvas(holds[0].x, holds[0].y);
-      ctx.moveTo(first.x, first.y);
-      for (let i = 1; i < holds.length; i++) {
-        const p = toCanvas(holds[i].x, holds[i].y);
-        ctx.lineTo(p.x, p.y);
-      }
-      ctx.stroke();
+      route.forEach((step) => {
+        const fromH = getPosByHoldId(step.from_hold);
+        const toH = getPosByHoldId(step.to_hold);
+        if (fromH && toH) {
+          const p1 = toCanvas(fromH.x, fromH.y);
+          const p2 = toCanvas(toH.x, toH.y);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+      });
     }
-    holds.forEach((h) => {
+
+    holds.forEach((h, i) => {
+      const holdId = i + 1;
       const { x, y } = toCanvas(h.x, h.y);
-      ctx.fillStyle = "yellow";
+      const hand = holdColorByHand[holdId];
+      ctx.fillStyle = hand === "left" ? "#3b82f6" : hand === "right" ? "#ef4444" : "#eab308";
       ctx.beginPath();
-      ctx.arc(x, y, 8, 0, 2 * Math.PI);
+      ctx.arc(x, y, 10, 0, 2 * Math.PI);
       ctx.fill();
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = "white";
+      ctx.font = "bold 12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(holdId), x, y);
     });
-  }, [image, holds]);
+  }, [image, holds, route, holdColorByHand, getPosByHoldId]);
 
   useEffect(() => {
     const ro = new ResizeObserver(drawResult);
     if (containerRef.current) ro.observe(containerRef.current);
     return () => ro.disconnect();
   }, [drawResult]);
+
+  useEffect(() => {
+    if (imgLoaded) drawResult();
+  }, [imgLoaded, drawResult]);
 
   return (
     <div className="app-layout">
