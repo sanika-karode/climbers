@@ -14,3 +14,13 @@ class Climber:
     height_cm: float
     experience: str
     arm_span: float
+
+@dataclass
+class RouteStep:
+    step_number: int
+    #turn int enum later
+    moved_limb: str
+    from_hold: int
+    to_hold: int
+    move_type: str
+    cost: float

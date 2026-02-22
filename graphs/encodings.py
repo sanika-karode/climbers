@@ -28,11 +28,11 @@ EXPERIENCE_MODIFIER = {
 #    return (height_cm*1.05) / 100
 
 def hold_penalty(hold_type: str) -> float:
-    return HOLD_PENALTY.get(hold_type)
+    return HOLD_PENALTY.get(hold_type, 2.0)
 
 def exp_penalty(exp: str) -> float:
     #climber comes from api schema
-    return EXPERIENCE_MODIFIER.get(exp)
+    return EXPERIENCE_MODIFIER.get(exp, 1.5)
 
 def reach_ratio(distance: float, max_reach: float) -> float:
     return distance/max_reach
