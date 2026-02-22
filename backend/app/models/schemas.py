@@ -7,17 +7,20 @@ class Hold(BaseModel):
     id: int
     x: float
     y: float
-    hold_type: Literal["jug", "crimp", "sloper", "pinch", "volume"]
-    size: float
+    hold_type: Literal["jug", "crimp", "sloper", "pinch"]
+    #size: float
     role: Literal["start", "end", "middle"]
 
 class Wall(BaseModel):
     holds: List[Hold]
+    #not a derived value
+    calibration_20cm_y: float
 
 class Climber(BaseModel):
     height: float
     experience: Literal["beginner", "intermediate", "advanced"]
-    max_reach: float
+    arm_span: float
+    #max_reach: float
 
 class BodyState(BaseModel):
     left_hand: int
@@ -26,7 +29,8 @@ class BodyState(BaseModel):
 class RouteRequest(BaseModel):
     wall: Wall
     climber: Climber
-    start_hold_id: int
+    start_left_hold_id: int
+    start_right_hold_id: int
     end_hold_id: int
 
 class RouteStep(BaseModel):

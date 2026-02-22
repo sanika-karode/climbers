@@ -9,3 +9,5 @@ python-multipart
 sqlalchemy
 psycopg2-binary
 alembic
+networkx
+python-dotenv

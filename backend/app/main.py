@@ -9,6 +9,12 @@ from app.models.user import User  # noqa: F401 - ensure table is registered
 from app.models.climbing import Wall, Hold  # noqa: F401 - ensure tables are registered
 from app.routes.auth import router as auth_router
 from app.routes.route import router as route_router
+from app.routes import auth
+
+app = FastAPI()
+Base.metadata.create_all(bind=engine)
+
+app.include_router(auth.router)
 
 app = FastAPI(title="Climbing Route API", version="1.0.0")
 
