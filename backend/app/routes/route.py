@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.auth import get_current_user
 from app.models.schemas import RouteRequest, RouteResponse, WallCreateResponse
 from app.models.user import User
-from app.services.route_service import generate_route
+# from app.services.route_service import generate_route  # TODO: uncomment when graph_engine branch merges
 from app.db.database import get_db
 from app.models.climbing import Wall, Hold
 
@@ -14,16 +14,16 @@ router = APIRouter(tags=["Climbing Logic"])
 UPLOAD_DIR = "static/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Endpoint 1: Pathfinding
-@router.post("/generate-route", response_model=RouteResponse)
-def create_route(request: RouteRequest):
-    try:
-        result = generate_route(request)
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception:
-        raise HTTPException(status_code=500, detail="Internal server error")
+# Endpoint 1: Pathfinding - TODO: uncomment when graph_engine branch merges
+# @router.post("/generate-route", response_model=RouteResponse)
+# def create_route(request: RouteRequest):
+#     try:
+#         result = generate_route(request)
+#         return result
+#     except ValueError as e:
+#         raise HTTPException(status_code=400, detail=str(e))
+#     except Exception:
+#         raise HTTPException(status_code=500, detail="Internal server error")
 
 # Endpoint 2: Upload (Notice we added the prefix to the path string)
 @router.post("/walls/upload", response_model=WallCreateResponse)

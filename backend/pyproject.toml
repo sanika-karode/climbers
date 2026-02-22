@@ -1,0 +1,20 @@
+[project]
+name = "climbing-api"
+version = "1.0.0"
+description = "Climbing route API backend"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "python-jose[cryptography]",
+    "passlib",
+    "bcrypt",
+    "python-multipart",
+    "sqlalchemy",
+    "psycopg2-binary",
+    "python-dotenv",
+]
+
+[project.scripts]
+app = "app.main:app"

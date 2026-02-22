@@ -1,39 +1,42 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from app.models.schemas import TokenData
 from app.db.database import Session, get_db
 from app.models.user import User
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 # ==============================
 # CONFIGURATION
 # ==============================
 
-load_dotenv("shh.env")
+env_path = Path(__file__).resolve().parent.parent / "shh.env"
+load_dotenv(env_path)
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # ==============================
-# PASSWORD HASHING
+# PASSWORD HASHING (bcrypt, 72-byte limit handled)
 # ==============================
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    pwd_bytes = password.encode("utf-8")[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    pwd_bytes = plain_password.encode("utf-8")[:72]
+    return bcrypt.checkpw(pwd_bytes, hashed_password.encode("utf-8"))
 
 
 # ==============================

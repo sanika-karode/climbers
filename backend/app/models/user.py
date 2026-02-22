@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 class User(Base):
@@ -10,3 +11,5 @@ class User(Base):
     height = Column(Float)
     experience = Column(String)
     armspan = Column(Float)
+
+    walls = relationship("Wall", back_populates="owner")
