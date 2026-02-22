@@ -3,24 +3,27 @@ import "./App.css";
 import appBackground from "./assets/appBackground.png";
 
 /* =========================
-   AUTH STORAGE (Backend JWT)
+   AUTH STORAGE
 ========================= */
 
+const USERS_KEY = "climbpath_users";
 const AUTH_KEY = "climbpath_auth";
-// In dev, use empty string so Vite proxy forwards to backend (avoids CORS)
-const API_BASE = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_URL || "http://localhost:8000");
 
-function getAuthUser() {
-  const data = localStorage.getItem(AUTH_KEY);
-  return data ? JSON.parse(data) : null;
+function getUsers() {
+  return JSON.parse(localStorage.getItem(USERS_KEY)) || [];
 }
 
-function setAuthUser(authResponse) {
-  if (authResponse?.access_token) {
-    localStorage.setItem(AUTH_KEY, JSON.stringify(authResponse));
-  } else {
-    localStorage.removeItem(AUTH_KEY);
-  }
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function getAuthUser() {
+  return JSON.parse(localStorage.getItem(AUTH_KEY)) || null;
+}
+
+function setAuthUser(user) {
+  if (user) localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+  else localStorage.removeItem(AUTH_KEY);
 }
 
 /* =========================
@@ -30,18 +33,16 @@ function setAuthUser(authResponse) {
 export default function App() {
   const [user, setUser] = useState(getAuthUser());
   const [routeData, setRouteData] = useState(null);
-  const [showHome, setShowHome] = useState(!getAuthUser());
+  const [showHome, setShowHome] = useState(true);
 
-  const handleLogin = (authResponse) => {
-    setUser(authResponse);
-    setAuthUser(authResponse);
+  const handleLogin = (user) => {
+    setUser(user);
+    setAuthUser(user);
   };
 
   const handleLogout = () => {
     setUser(null);
     setAuthUser(null);
-    setRouteData(null);
-    setShowHome(false);
   };
 
   return (
@@ -100,15 +101,6 @@ function HomePage({ onGetStarted }) {
    AUTH PAGE
 ========================= */
 
-/** Parse height/arm span: "5'10" -> 70, or "70" -> 70 */
-function parseInches(value) {
-  if (!value || typeof value !== "string") return 0;
-  const v = value.trim();
-  const match = v.match(/^(\d+)\s*[''']\s*(\d+)$/);
-  if (match) return parseFloat(match[1]) * 12 + parseFloat(match[2]);
-  return parseFloat(v) || 0;
-}
-
 function AuthPage({ onLogin }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
@@ -116,95 +108,45 @@ function AuthPage({ onLogin }) {
   const [height, setHeight] = useState("");
   const [armSpan, setArmSpan] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    const users = getUsers();
 
-    try {
-      const username = email.trim();
-      if (!username || !password) {
-        setError("Email and password are required");
+    if (mode === "signup") {
+      if (users.find((u) => u.email === email)) {
+        setError("User already exists");
         return;
       }
 
-      if (mode === "signup") {
-        const heightNum = parseInches(height);
-        const armSpanNum = parseInches(armSpan);
-        if (!heightNum || !armSpanNum) {
-          setError("Please enter height and arm span (e.g. 70 or 5'10)");
-          return;
-        }
-
-        const regRes = await fetch(`${API_BASE}/auth/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username,
-            password,
-            height: heightNum,
-            armspan: armSpanNum,
-            experience: "beginner",
-          }),
-        });
-
-        if (!regRes.ok) {
-          const text = await regRes.text();
-          let err = {};
-          try {
-            err = JSON.parse(text);
-          } catch (_) {}
-          let msg = "Registration failed";
-          if (err.detail) {
-            msg = Array.isArray(err.detail)
-              ? err.detail.map((e) => e.msg || JSON.stringify(e)).join("; ")
-              : String(err.detail);
-          } else if (regRes.status === 422) {
-            msg = "Invalid input (check email, password, height, arm span)";
-          } else {
-            const preview = text.slice(0, 200).replace(/\s+/g, " ").trim();
-            msg = `Registration failed (${regRes.status}): ${preview || "See backend console for details"}`;
-          }
-          throw new Error(msg);
-        }
-
-        const loginRes = await fetch(`${API_BASE}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
-        });
-        if (!loginRes.ok) throw new Error("Account created but login failed");
-        const data = await loginRes.json();
-        onLogin(data);
-      } else {
-        const loginRes = await fetch(`${API_BASE}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
-        });
-
-        if (!loginRes.ok) {
-          const err = await loginRes.json().catch(() => ({}));
-          const msg = Array.isArray(err.detail)
-            ? err.detail.map((e) => e.msg).join("; ")
-            : (err.detail || "Invalid credentials");
-          throw new Error(msg);
-        }
-
-        const data = await loginRes.json();
-        onLogin(data);
+      if (!height || !armSpan) {
+        setError("Please enter height and arm span");
+        return;
       }
-    } catch (err) {
-      const msg = err.message || "Something went wrong";
-      if (msg === "Failed to fetch" || msg.includes("Load failed") || err.name === "TypeError") {
-        setError("Cannot connect to server. Make sure the backend is running: cd backend && uvicorn app.main:app --reload --port 8000");
-      } else {
-        setError(msg);
+
+      const newUser = {
+        email,
+        password,
+        height,
+        armSpan,
+      };
+
+      users.push(newUser);
+      saveUsers(users);
+      onLogin(newUser);
+    }
+
+    if (mode === "login") {
+      const found = users.find(
+        (u) => u.email === email && u.password === password
+      );
+
+      if (!found) {
+        setError("Invalid login");
+        return;
       }
-    } finally {
-      setLoading(false);
+
+      onLogin(found);
     }
   };
 
@@ -233,18 +175,20 @@ function AuthPage({ onLogin }) {
           required
         />
 
+        {/* ✅ HEIGHT + ARM SPAN ONLY FOR SIGNUP */}
         {mode === "signup" && (
           <>
             <input
               type="text"
-              placeholder="Height (e.g. 70 or 5'10)"
+              placeholder="Height (e.g. 5'10)"
               value={height}
               onChange={(e) => setHeight(e.target.value)}
               required
             />
+
             <input
               type="text"
-              placeholder="Arm span (e.g. 72 or 6'0)"
+              placeholder="Arm Span (e.g. 6'0)"
               value={armSpan}
               onChange={(e) => setArmSpan(e.target.value)}
               required
@@ -254,8 +198,8 @@ function AuthPage({ onLogin }) {
 
         {error && <p className="upload-error">{error}</p>}
 
-        <button type="submit" className="upload-button" disabled={loading}>
-          {loading ? "..." : mode === "login" ? "Login" : "Sign Up"}
+        <button type="submit" className="upload-button">
+          {mode === "login" ? "Login" : "Sign Up"}
         </button>
 
         <button
@@ -279,7 +223,6 @@ function AuthPage({ onLogin }) {
 
 function AnalyzePage({ user, onLogout, onAnalyze }) {
   const [image, setImage] = useState(null);
-  const [rawFile, setRawFile] = useState(null);
   const [holdType, setHoldType] = useState("one_hand");
   const [leftHold, setLeftHold] = useState(null);
   const [rightHold, setRightHold] = useState(null);
@@ -300,7 +243,6 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
     }
 
     setError("");
-    setRawFile(file);
     setLeftHold(null);
     setRightHold(null);
     setRestHolds([]);
@@ -393,53 +335,16 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
     setRestHolds([]);
   };
 
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleAnalyze = async () => {
-    if (!canAnalyze || !image || !rawFile || !user?.access_token) return;
-    setIsUploading(true);
-    setError("");
-
-    try {
-      const holdsData = holds.map((h) => ({
-        x_position: h.x,
-        y_position: h.y,
-        hold_type: "unknown",
-      }));
-
-      const formData = new FormData();
-      formData.append("file", rawFile);
-      formData.append("holds_data", JSON.stringify(holdsData));
-
-      const res = await fetch(`${API_BASE}/api/v1/walls/upload`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${user.access_token}` },
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || "Upload failed");
-      }
-
-      onAnalyze({
-        image,
-        holdType,
-        holds,
-        leftHoldIndex: holdType === "two_hand" ? 0 : undefined,
-        rightHoldIndex: holdType === "two_hand" ? 1 : undefined,
-        scaleOneFoot: { start: scaleStart, end: scaleEnd },
-      });
-    } catch (err) {
-      const msg = err.message || "Failed to save wall data";
-      if (msg === "Failed to fetch" || msg.includes("Load failed") || err.name === "TypeError") {
-        setError("Cannot connect to server. Is the backend running? (uvicorn app.main:app --reload --port 8000)");
-      } else {
-        setError(msg);
-      }
-    } finally {
-      setIsUploading(false);
-    }
+  const handleAnalyze = () => {
+    if (!canAnalyze || !image) return;
+    onAnalyze({
+      image,
+      holdType,
+      holds,
+      leftHoldIndex: holdType === "two_hand" ? 0 : undefined,
+      rightHoldIndex: holdType === "two_hand" ? 1 : undefined,
+      scaleOneFoot: { start: scaleStart, end: scaleEnd },
+    });
   };
 
   const handleClearScale = () => {
@@ -561,9 +466,8 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
                   type="button"
                   className="upload-button upload-button-primary"
                   onClick={handleAnalyze}
-                  disabled={isUploading}
                 >
-                  {isUploading ? "Saving..." : "Analyze Route"}
+                  Analyze Route
                 </button>
               )}
             </>
