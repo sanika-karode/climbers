@@ -4,7 +4,6 @@ from app.routes.route import router as route_router
 from fastapi import FastAPI
 from app.db.database import engine, Base
 from app.routes import auth_routes
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
@@ -17,14 +16,6 @@ app = FastAPI(title="Climbing Route API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],  # React dev server
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], # Or ["http://localhost:3000"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

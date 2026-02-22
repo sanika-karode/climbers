@@ -3,30 +3,27 @@ import "./App.css";
 import appBackground from "./assets/appBackground.png";
 
 /* =========================
-   AUTH STORAGE (Integrated)
+   AUTH STORAGE
 ========================= */
 
+const USERS_KEY = "climbpath_users";
 const AUTH_KEY = "climbpath_auth";
 
-/**
- * Retrieves the authenticated user and their JWT token.
- * Since we now use a backend, we check if a token exists.
- */
-function getAuthUser() {
-  const data = localStorage.getItem(AUTH_KEY);
-  return data ? JSON.parse(data) : null;
+function getUsers() {
+  return JSON.parse(localStorage.getItem(USERS_KEY)) || [];
 }
 
-/**
- * Saves or clears the auth session.
- * Stores the 'access_token' and username returned by FastAPI.
- */
-function setAuthUser(userResponse) {
-  if (userResponse && userResponse.access_token) {
-    localStorage.setItem(AUTH_KEY, JSON.stringify(userResponse));
-  } else {
-    localStorage.removeItem(AUTH_KEY);
-  }
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function getAuthUser() {
+  return JSON.parse(localStorage.getItem(AUTH_KEY)) || null;
+}
+
+function setAuthUser(user) {
+  if (user) localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+  else localStorage.removeItem(AUTH_KEY);
 }
 
 /* =========================
@@ -36,18 +33,16 @@ function setAuthUser(userResponse) {
 export default function App() {
   const [user, setUser] = useState(getAuthUser());
   const [routeData, setRouteData] = useState(null);
-  const [showHome, setShowHome] = useState(!getAuthUser());
+  const [showHome, setShowHome] = useState(true);
 
   const handleLogin = (user) => {
-    setUser(authResponse);
-    setAuthUser(authResponse);
+    setUser(user);
+    setAuthUser(user);
   };
 
   const handleLogout = () => {
     setUser(null);
     setAuthUser(null);
-    setRouteData(null);
-    setShowHome(true);
   };
 
   return (
@@ -105,105 +100,129 @@ function HomePage({ onGetStarted }) {
 /* =========================
    AUTH PAGE
 ========================= */
+
 function AuthPage({ onLogin }) {
   const [mode, setMode] = useState("login");
-  const [email, setEmail] = useState(""); // This will be sent as 'username' to backend
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [height, setHeight] = useState("");
   const [armSpan, setArmSpan] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    const users = getUsers();
 
-    try {
-      if (mode === "signup") {
-        // 1. SIGNUP LOGIC
-        // Convert strings to floats for the backend 
-        const signupPayload = {
-          username: email,
-          password: password,
-          height: parseFloat(height) || 0,
-          armspan: parseFloat(armSpan) || 0,
-          experience: "beginner" // Default required by your schema 
-        };
-
-        const regResponse = await fetch("http://localhost:8000/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(signupPayload),
-        });
-
-        if (!regResponse.ok) {
-          const errorData = await regResponse.json();
-          throw new Error(errorData.detail || "Registration failed");
-        }
-        
-        // After successful signup, automatically switch to login or log them in
-        setMode("login");
-        setError("Account created! Please log in.");
-      } else {
-        // 2. LOGIN LOGIC
-        const loginPayload = {
-          username: email,
-          password: password
-        };
-
-        const loginResponse = await fetch("http://localhost:8000/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(loginPayload),
-        });
-
-        if (!loginResponse.ok) {
-          const errorData = await loginResponse.json();
-          throw new Error(errorData.detail || "Invalid credentials");
-        }
-
-        const data = await loginResponse.json(); // Returns { access_token, token_type }
-        
-        // Pass the token and user info up to App.jsx
-        onLogin(data); 
+    if (mode === "signup") {
+      if (users.find((u) => u.email === email)) {
+        setError("User already exists");
+        return;
       }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+
+      if (!height || !armSpan) {
+        setError("Please enter height and arm span");
+        return;
+      }
+
+      const newUser = {
+        email,
+        password,
+        height,
+        armSpan,
+      };
+
+      users.push(newUser);
+      saveUsers(users);
+      onLogin(newUser);
+    }
+
+    if (mode === "login") {
+      const found = users.find(
+        (u) => u.email === email && u.password === password
+      );
+
+      if (!found) {
+        setError("Invalid login");
+        return;
+      }
+
+      onLogin(found);
     }
   };
 
   return (
     <div className="app-layout">
-      <header className="app-header"><h1 className="app-title">ASCEND</h1></header>
+      <header className="app-header">
+        <h1 className="app-title">ASCEND</h1>
+      </header>
+
       <form className="upload-container" onSubmit={handleSubmit}>
         <h2>{mode === "login" ? "Log In" : "Sign Up"}</h2>
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        {/* ✅ HEIGHT + ARM SPAN ONLY FOR SIGNUP */}
         {mode === "signup" && (
           <>
-            <input type="number" placeholder="Height" value={height} onChange={(e) => setHeight(e.target.value)} required />
-            <input type="number" placeholder="Arm Span" value={armSpan} onChange={(e) => setArmSpan(e.target.value)} required />
+            <input
+              type="text"
+              placeholder="Height (e.g. 5'10)"
+              value={height}
+              onChange={(e) => setHeight(e.target.value)}
+              required
+            />
+
+            <input
+              type="text"
+              placeholder="Arm Span (e.g. 6'0)"
+              value={armSpan}
+              onChange={(e) => setArmSpan(e.target.value)}
+              required
+            />
           </>
         )}
+
         {error && <p className="upload-error">{error}</p>}
-        <button type="submit" className="upload-button" disabled={loading}>{loading ? "..." : (mode === "login" ? "Login" : "Sign Up")}</button>
-        <button type="button" className="upload-button" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
-            {mode === "login" ? "Sign Up" : "Login"}
+
+        <button type="submit" className="upload-button">
+          {mode === "login" ? "Login" : "Sign Up"}
+        </button>
+
+        <button
+          type="button"
+          className="upload-button"
+          onClick={() => {
+            setMode(mode === "login" ? "signup" : "login");
+            setError("");
+          }}
+        >
+          {mode === "login" ? "Sign Up" : "Login"}
         </button>
       </form>
     </div>
   );
 }
+
 /* =========================
    ANALYZE PAGE
 ========================= */
 
 function AnalyzePage({ user, onLogout, onAnalyze }) {
   const [image, setImage] = useState(null);
-  const [rawFile, setRawFile] = useState(null);
   const [holdType, setHoldType] = useState("one_hand");
   const [leftHold, setLeftHold] = useState(null);
   const [rightHold, setRightHold] = useState(null);
@@ -211,14 +230,25 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
   const [scaleStart, setScaleStart] = useState(null);
   const [scaleEnd, setScaleEnd] = useState(null);
   const [error, setError] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const canvasRef = useRef(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setRawFile(file);
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload a valid image.");
+      return;
+    }
+
+    setError("");
+    setLeftHold(null);
+    setRightHold(null);
+    setRestHolds([]);
+    setScaleStart(null);
+    setScaleEnd(null);
+
     const reader = new FileReader();
     reader.onload = () => setImage(reader.result);
     reader.readAsDataURL(file);
@@ -230,44 +260,6 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
     setLeftHold(null);
     setRightHold(null);
     setRestHolds([]);
-  
-  const handleAnalyzeClick = async () => {
-    setIsAnalyzing(true);
-    setError("");
-
-    try {
-      // 1. Prepare Wall Upload Data (Keep this so your DB works!)
-      const formData = new FormData();
-      formData.append("file", rawFile);
-      
-      const holdsData = holds.map(h => ({
-        x_position: h.x,
-        y_position: h.y,
-        hold_type: "unknown"
-      }));
-      formData.append("holds_data", JSON.stringify(holdsData));
-
-      // 2. Upload to FastAPI
-      const response = await fetch("http://localhost:8000/walls/upload", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${user.access_token}` 
-        },
-        body: formData
-      });
-
-      if (!response.ok) throw new Error("Upload failed");
-
-      // 3. SKIP Pathfinding Engine for now
-      // Instead of calling /generate-route, we use the local 'holds' array
-      // This sends the user's manual clicks directly to the ResultPage
-      onAnalyze({image, holdType, holds, leftHoldIndex: holdType === "two_hand" ? 0 : undefined, rightHoldIndex: holdType === "two_hand" ? 1 : undefined,}); 
-
-    } catch (err) {
-      setError(err.message || "Failed to save wall data.");
-    } finally {
-      setIsAnalyzing(false);
-    }
   };
 
   const handleCanvasClick = (e) => {
@@ -278,19 +270,26 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
     const yNorm = (e.clientY - rect.top) / rect.height;
     const point = { x: xNorm, y: yNorm };
 
-    if (!scaleStart) return setScaleStart(point);
-    if (!scaleEnd) return setScaleEnd(point);
+    if (!scaleStart) {
+      setScaleStart(point);
+      return;
+    }
+    if (!scaleEnd) {
+      setScaleEnd(point);
+      return;
+    }
 
+    const hold = point;
     if (holdType === "two_hand") {
       if (!leftHold) {
-        setLeftHold(point);
+        setLeftHold(hold);
       } else if (!rightHold) {
-        setRightHold(point);
+        setRightHold(hold);
       } else {
-        setRestHolds((prev) => [...prev, point]);
+        setRestHolds((prev) => [...prev, hold]);
       }
     } else {
-      setRestHolds((prev) => [...prev, point]);
+      setRestHolds((prev) => [...prev, hold]);
     }
   };
 
@@ -375,7 +374,6 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    //update after graph stuff is integrated
     if (scaleStart) {
       const sx = scaleStart.x * canvas.width;
       const sy = scaleStart.y * canvas.height;
@@ -458,18 +456,18 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
               <button type="button" className="upload-button" onClick={handleUndo}>
                 Undo
               </button>
-              <button type="button" className="upload-button" onClick={() => setHolds([])}>
+
+              <button type="button" className="upload-button" onClick={handleClear}>
                 Clear
               </button>
 
-              {holds.length >= 2 && (
-                <button 
-                  type="button" 
-                  className="upload-button upload-button-primary" 
-                  onClick={handleAnalyzeClick}
-                  disabled={isAnalyzing}
+              {canAnalyze && (
+                <button
+                  type="button"
+                  className="upload-button upload-button-primary"
+                  onClick={handleAnalyze}
                 >
-                  {isAnalyzing ? "Analyzing..." : "Analyze Route"}
+                  Analyze Route
                 </button>
               )}
             </>
@@ -537,29 +535,28 @@ function ResultPage({ image, holds, holdType, leftHoldIndex, rightHoldIndex, onB
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, cw, ch);
 
-    if (holds && holds.length > 0) {
-      ctx.strokeStyle = "#00ffcc"; // Climbing path color
+    if (holds.length >= 2) {
+      ctx.strokeStyle = "red";
       ctx.lineWidth = 4;
-      ctx.setLineDash([5, 5]); // Optional: dashed line for "beta"
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
       ctx.beginPath();
-
-      holds.forEach((step, index) => {
-        // Use the backend's field names: x_position / y_position
-        const start = toCanvas(step.from_hold.x_position, step.from_hold.y_position);
-        const end = toCanvas(step.to_hold.x_position, step.to_hold.y_position);
-
-        if (index === 0) ctx.moveTo(start.x, start.y);
-        ctx.lineTo(end.x, end.y);
-        
-        // Draw the hold circle
-        ctx.fillStyle = "yellow";
-        ctx.beginPath();
-        ctx.arc(end.x, end.y, 10, 0, 2 * Math.PI);
-        ctx.fill();
-
-      });
+      const first = toCanvas(holds[0].x, holds[0].y);
+      ctx.moveTo(first.x, first.y);
+      for (let i = 1; i < holds.length; i++) {
+        const p = toCanvas(holds[i].x, holds[i].y);
+        ctx.lineTo(p.x, p.y);
+      }
       ctx.stroke();
     }
+
+    holds.forEach((h) => {
+      const { x, y } = toCanvas(h.x, h.y);
+      ctx.fillStyle = "yellow";
+      ctx.beginPath();
+      ctx.arc(x, y, 8, 0, 2 * Math.PI);
+      ctx.fill();
+    });
   }, [image, holds, imgLoaded]);
 
   const drawResult = useCallback(() => {
@@ -629,5 +626,4 @@ function ResultPage({ image, holds, holdType, leftHoldIndex, rightHoldIndex, onB
       </div>
     </div>
   );
-}
 }
