@@ -57,6 +57,9 @@ export default function App() {
           holdType={routeData.holdType}
           leftHoldIndex={routeData.leftHoldIndex}
           rightHoldIndex={routeData.rightHoldIndex}
+          route={routeData.route}
+          totalCost={routeData.total_cost}
+          estimatedGrade={routeData.estimated_grade}
           onBack={() => setRouteData(null)}
         />
       )}
@@ -260,6 +263,7 @@ function AuthPage({ onLogin }) {
 ========================= */
 
 const HOLD_TYPES = ["jug", "crimp", "sloper", "pinch"];
+const API_BASE = import.meta.env?.VITE_API_URL || "http://127.0.0.1:8000";
 
 /* =========================
    ANALYZE PAGE
@@ -274,6 +278,7 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
   const [scaleStart, setScaleStart] = useState(null);
   const [scaleEnd, setScaleEnd] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const canvasRef = useRef(null);
 
@@ -390,16 +395,76 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
     setRestHolds([]);
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!canAnalyze || !image) return;
-    onAnalyze({
-      image,
-      holdType,
-      holds,
-      leftHoldIndex: holdType === "two_hand" ? 0 : 0,
-      rightHoldIndex: holdType === "two_hand" ? 1 : 0,
-      scaleOneFoot: { start: scaleStart, end: scaleEnd },
-    });
+    setLoading(true);
+    setError("");
+    try {
+      const scaleDeltaY = Math.abs((scaleEnd?.y ?? 0) - (scaleStart?.y ?? 0));
+      const calibration_20cm_y = scaleDeltaY > 0 ? scaleDeltaY : 0.05;
+
+      const apiHolds = holds.map((h, i) => ({
+        id: i + 1,
+        x: h.x,
+        y: h.y,
+        hold_type: h.holdType || "jug",
+        role: holdType === "two_hand"
+          ? i === 0 || i === 1
+            ? "start"
+            : i === holds.length - 1
+              ? "end"
+              : "middle"
+          : i === 0
+            ? "start"
+            : i === holds.length - 1
+              ? "end"
+              : "middle",
+      }));
+
+      const startLeft = holdType === "two_hand" ? 1 : 1;
+      const startRight = holdType === "two_hand" ? 2 : 1;
+      const endId = apiHolds.length;
+
+      const payload = {
+        wall: {
+          holds: apiHolds,
+          calibration_20cm_y,
+        },
+        climber: {
+          height: parseFloat(user.height) || 170,
+          experience: user.level || "intermediate",
+          arm_span: parseFloat(user.armSpan) || 170,
+        },
+        start_left_hold_id: startLeft,
+        start_right_hold_id: startRight,
+        end_hold_id: endId,
+      };
+
+      const res = await fetch(`${API_BASE}/api/v1/generate-route`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Failed to generate route");
+
+      onAnalyze({
+        image,
+        holdType,
+        holds,
+        leftHoldIndex: holdType === "two_hand" ? 0 : 0,
+        rightHoldIndex: holdType === "two_hand" ? 1 : 0,
+        scaleOneFoot: { start: scaleStart, end: scaleEnd },
+        route: data.route,
+        total_cost: data.total_cost,
+        estimated_grade: data.estimated_grade,
+      });
+    } catch (err) {
+      setError(err.message || "Failed to generate route");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClearScale = () => {
@@ -451,7 +516,7 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
         ctx.fill();
         ctx.fillStyle = "white";
         ctx.font = "10px sans-serif";
-        ctx.fillText("1 ft", (sx + ex) / 2 - 12, (sy + ey) / 2 - 8);
+        ctx.fillText("20 cm", (sx + ex) / 2 - 18, (sy + ey) / 2 - 8);
       }
     }
 
@@ -488,7 +553,7 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
           {image && scaleStart && scaleEnd && (
             <>
               <button type="button" className="upload-button" onClick={handleClearScale}>
-                Clear 1-foot scale
+                Clear 20 cm scale
               </button>
 
               <label className="hold-type-label">
@@ -546,8 +611,9 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
                   type="button"
                   className="upload-button upload-button-primary"
                   onClick={handleAnalyze}
+                  disabled={loading}
                 >
-                  Analyze Route
+                  {loading ? "Generating route…" : "Analyze Route"}
                 </button>
               )}
             </>
@@ -581,7 +647,7 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
    RESULT PAGE (NEW)
 ========================= */
 
-function ResultPage({ image, holds, holdType, leftHoldIndex, rightHoldIndex, onBack }) {
+function ResultPage({ image, holds, holdType, leftHoldIndex, rightHoldIndex, route, totalCost, estimatedGrade, onBack }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
@@ -690,8 +756,26 @@ function ResultPage({ image, holds, holdType, leftHoldIndex, rightHoldIndex, onB
 
   return (
     <div className="app-layout">
-      <h2 className="result-page-title"><p></p><p></p>This is the most optimized route </h2>
-
+      <h2 className="result-page-title">Optimized route</h2>
+      {(estimatedGrade || totalCost != null) && (
+        <p className="result-meta">
+          {estimatedGrade && <span>Grade: {estimatedGrade}</span>}
+          {totalCost != null && <span> • Cost: {totalCost.toFixed(1)}</span>}
+        </p>
+      )}
+      {route && route.length > 0 && (
+        <div className="route-steps">
+          <h3>Route sequence</h3>
+          <ol className="route-steps-list">
+            {route.map((step, i) => (
+              <li key={i}>
+                Step {step.step_number}: {step.moved_limb} → hold {step.to_hold}
+                {step.move_type && ` (${step.move_type})`}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
       <div className="route-result-wrapper">
         <div className="route-display route-result" ref={containerRef}>
           <img ref={imgRef} src={image} alt="Wall" className="route-result-image" onLoad={() => setImgLoaded(true)} />

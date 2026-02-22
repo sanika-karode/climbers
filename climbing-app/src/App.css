@@ -481,6 +481,35 @@
   font-size: 1.5rem;
 }
 
+.result-meta {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.route-steps {
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.route-steps h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.route-steps-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.route-steps-list li {
+  margin-bottom: 0.25rem;
+}
+
 .result-actions {
   padding: 1.5rem 0;
 }

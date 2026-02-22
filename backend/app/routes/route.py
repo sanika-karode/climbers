@@ -14,16 +14,16 @@ router = APIRouter(tags=["Climbing Logic"])
 UPLOAD_DIR = "static/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Endpoint 1: Pathfinding - TODO: uncomment when graph_engine branch merges
- @router.post("/generate-route", response_model=RouteResponse)
- def create_route(request: RouteRequest):
-     try:
-         result = generate_route(request)
-         return result
-     except ValueError as e:
-         raise HTTPException(status_code=400, detail=str(e))
-     except Exception:
-         raise HTTPException(status_code=500, detail="Internal server error")
+# Endpoint 1: Pathfinding
+@router.post("/generate-route", response_model=RouteResponse)
+def create_route(request: RouteRequest):
+    try:
+        result = generate_route(request)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # Endpoint 2: Upload (Notice we added the prefix to the path string)
 @router.post("/walls/upload", response_model=WallCreateResponse)

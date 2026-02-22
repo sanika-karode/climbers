@@ -1,9 +1,12 @@
 import math
 from graphs.models import *
 
+REACH_TOLERANCE = 1.15
+
 def compute_max_reach_image_units(arm_span_cm: float, wall_height_cm: float) -> float:
-    """Convert arm span to image units (0–1) using wall calibration."""
-    return arm_span_cm / wall_height_cm
+    """Convert arm span to image units (0–1) using wall calibration.
+    Applies REACH_TOLERANCE to allow slightly longer reaches for edge cases."""
+    return (arm_span_cm / wall_height_cm) * REACH_TOLERANCE
 
 
 def wall_height_from_calibration(calibration_20cm_y: float, reference_cm: float = 20.0) -> float:

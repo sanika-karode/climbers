@@ -32,7 +32,7 @@ def build_climbing_graph(holds: List[Hold], climber: Climber):
             if h1.id == h2.id:
                 continue
 
-            dist = distance(h1,h2)
+            dist = distance(h1, h2)
 
             if dist <= max_reach:
                 weight = get_penalty(dist, h1, h2, climber)
