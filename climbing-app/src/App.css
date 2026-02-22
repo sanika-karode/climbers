@@ -248,6 +248,35 @@
   color: #94a3b8;
 }
 
+/* Auth form select - match input style, size, and text color */
+.upload-container .auth-select {
+  font-family: "Idiqlat", system-ui, sans-serif;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0;
+  border: 2px solid rgba(51, 65, 85, 0.8);
+  background-color: rgba(24, 28, 35, 0.85);
+  color: white;
+  font-size: 0.95rem;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 15px rgba(41, 33, 33, 0.5);
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.upload-container .auth-select:focus {
+  border-color: rgba(255, 25, 0, 0.8);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.7);
+}
+
+.upload-container .auth-select option {
+  color: white;
+  background-color: rgba(24, 28, 35, 0.95);
+}
+
 /* Hold type and top hold selects */
 .hold-type-label {
   display: flex;

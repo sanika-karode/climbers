@@ -131,6 +131,7 @@ function AuthPage({ onLogin }) {
   const [password, setPassword] = useState("");
   const [height, setHeight] = useState("");
   const [armSpan, setArmSpan] = useState("");
+  const [level, setLevel] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
@@ -143,8 +144,8 @@ function AuthPage({ onLogin }) {
         return;
       }
 
-      if (!height || !armSpan) {
-        setError("Please enter height and arm span");
+      if (!height || !armSpan || !level) {
+        setError("Please enter height, arm span, and level");
         return;
       }
 
@@ -153,6 +154,7 @@ function AuthPage({ onLogin }) {
         password,
         height,
         armSpan,
+        level,
       };
 
       users.push(newUser);
@@ -204,7 +206,7 @@ function AuthPage({ onLogin }) {
           <>
             <input
               type="text"
-              placeholder="Height (e.g. 5'10)"
+              placeholder="Height (cm)"
               value={height}
               onChange={(e) => setHeight(e.target.value)}
               required
@@ -212,11 +214,23 @@ function AuthPage({ onLogin }) {
 
             <input
               type="text"
-              placeholder="Arm Span (e.g. 6'0)"
+              placeholder="Arm Span (cm)"
               value={armSpan}
               onChange={(e) => setArmSpan(e.target.value)}
               required
             />
+
+            <select
+              className="auth-select"
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+              required
+            >
+              <option value="">Select level</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
           </>
         )}
 
@@ -395,8 +409,8 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
 
   const getInstruction = () => {
     if (!image) return null;
-    if (!scaleStart) return "click the first point to set the 1-foot scale";
-    if (!scaleEnd) return "click the second point to complete the 1-foot scale";
+    if (!scaleStart) return "click the first point to set the 20 cm scale";
+    if (!scaleEnd) return "click the second point to complete the 20 cm scale";
     if (holdType === "two_hand") {
       if (!leftHold) return "click on the image to place your LEFT starting hold";
       if (!rightHold) return "click on the image to place your RIGHT starting hold";
