@@ -7,17 +7,24 @@ from dotenv import load_dotenv
 
 env_path = Path(__file__).resolve().parent.parent / "shh.env"
 load_dotenv(env_path)
+# Also load from .env (common in deployment)
+load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 SUPABASE_DB_URL = os.getenv("SUPABASE_DB_URL")  # Use this for Supabase (pooler port 6543)
 
-# Use SQLite if no DB URL set, or as fallback when PostgreSQL is unavailable
+# Use SQLite if no DB URL set (local dev only - not for Vercel)
 SQLITE_URL = "sqlite:///./climbing.db"
 
 
 def _get_engine():
-    # Prefer Supabase URL for Vercel/serverless deployment
-    url = SUPABASE_DB_URL or DATABASE_URL or SQLITE_URL
+    # On Vercel, require SUPABASE_DB_URL or DATABASE_URL (no SQLite fallback)
+    if os.getenv("VERCEL"):
+        url = SUPABASE_DB_URL or DATABASE_URL
+        if not url:
+            raise ValueError("SUPABASE_DB_URL or DATABASE_URL must be set on Vercel")
+    else:
+        url = SUPABASE_DB_URL or DATABASE_URL or SQLITE_URL
     is_supabase = bool(SUPABASE_DB_URL) or "supabase.com" in (url or "")
     if is_supabase and url and ("postgresql" in url or "postgres" in url):
         # Supabase: use NullPool for serverless, ensure postgresql:// scheme

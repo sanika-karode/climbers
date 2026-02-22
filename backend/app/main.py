@@ -28,7 +28,11 @@ def health():
     return {"status": "ok"}
 
 
-Base.metadata.create_all(bind=engine)
+# Defer DB init so app can start even if DB is temporarily unavailable (e.g. cold start)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"DB init warning: {e}")
 
 _cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000").split(",")
 app.add_middleware(
