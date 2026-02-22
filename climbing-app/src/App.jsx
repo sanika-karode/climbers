@@ -542,16 +542,18 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
     holds.forEach((hold, index) => {
       const px = hold.x * canvas.width;
       const py = hold.y * canvas.height;
+      ctx.fillStyle = "#eab308";
       ctx.beginPath();
-      ctx.arc(px, py, 8, 0, 2 * Math.PI);
-      ctx.fillStyle = "#00ffcc";
+      ctx.arc(px, py, 10, 0, 2 * Math.PI);
       ctx.fill();
-
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 2;
+      ctx.stroke();
       ctx.fillStyle = "white";
-      ctx.font = "12px sans-serif";
+      ctx.font = "bold 12px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(getHoldLabel(index), px, py - 14);
-      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(index + 1), px, py);
     });
   }, [holds, image, holdType, scaleStart, scaleEnd]);
 
@@ -764,11 +766,8 @@ function ResultPage({ image, holds, holdType, leftHoldIndex, rightHoldIndex, rou
   return (
     <div className="app-layout">
       <h2 className="result-page-title">Optimized route</h2>
-      {(estimatedGrade || totalCost != null) && (
-        <p className="result-meta">
-          {estimatedGrade && <span>Grade: {estimatedGrade}</span>}
-          {totalCost != null && <span> • Cost: {totalCost.toFixed(1)}</span>}
-        </p>
+      {estimatedGrade && (
+        <p className="result-meta">Grade: {estimatedGrade}</p>
       )}
       {route && route.length > 0 && (
         <div className="route-steps">
