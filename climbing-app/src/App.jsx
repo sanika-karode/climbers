@@ -33,6 +33,7 @@ function setAuthUser(user) {
 export default function App() {
   const [user, setUser] = useState(getAuthUser());
   const [routeData, setRouteData] = useState(null);
+  const [showHome, setShowHome] = useState(true);
 
   const handleLogin = (user) => {
     setUser(user);
@@ -47,7 +48,8 @@ export default function App() {
   return (
     <>
       <div className="app-background" style={{ backgroundImage: `url(${appBackground})` }} aria-hidden />
-      {!user && <AuthPage onLogin={handleLogin} />}
+      {showHome && !user && <HomePage onGetStarted={() => setShowHome(false)} />}
+      {!showHome && !user && <AuthPage onLogin={handleLogin} />}
       {user && routeData && (
         <ResultPage
           image={routeData.image}
@@ -65,6 +67,32 @@ export default function App() {
         />
       )}
     </>
+  );
+}
+
+/* =========================
+   HOME PAGE
+========================= */
+
+function HomePage({ onGetStarted }) {
+  return (
+    <div className="app-layout home-page">
+      <header className="app-header">
+        <h1 className="app-title">ASCEND</h1>
+      </header>
+
+      <p className="home-tagline">just keep climbing</p>
+
+      <p className="home-description">
+        <p>Climb a problem in 3 easy steps.<br />1. Take a photo<br />2. Set your holds<br />3. Climb!</p>
+      </p>
+
+      <div className="home-actions">
+        <button type="button" className="upload-button" onClick={onGetStarted}>
+          Get Started Now
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -124,7 +152,7 @@ function AuthPage({ onLogin }) {
   return (
     <div className="app-layout">
       <header className="app-header">
-        <h1 className="app-title">ClimbPath AI</h1>
+        <h1 className="app-title">ASCEND</h1>
       </header>
 
       <form className="upload-container" onSubmit={handleSubmit}>
@@ -181,7 +209,7 @@ function AuthPage({ onLogin }) {
             setError("");
           }}
         >
-          Switch to {mode === "login" ? "Sign Up" : "Login"}
+          {mode === "login" ? "Sign Up" : "Login"}
         </button>
       </form>
     </div>
@@ -251,7 +279,7 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
   return (
     <div className="app-layout">
       <header className="app-header">
-        <h1 className="app-title">ClimbPath AI</h1>
+        <h1 className="app-title">ASCEND</h1>
       </header>
 
       <div className="app-upload">

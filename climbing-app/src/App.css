@@ -7,7 +7,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-color: #7b849c;
+  background-color: #353840;
 }
 
 #root {
@@ -17,7 +17,7 @@
   padding: 0 2rem;
   box-sizing: border-box;
 
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: "Idiqlat", system-ui, sans-serif;
   color: black;
 
   min-height: 100vh;
@@ -48,14 +48,58 @@
 }
 
 .app-title {
-  font-family: "Luckiest Guy", cursive;
-  font-size: 3rem;
+  font-family: "Story Script" cursive, system-ui;
+  font-size: 5rem;
   font-weight: bold;
   margin: 0;
   text-align: center;
-  background: #8c2103;
+  background: #6c2009;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* ===== HOME PAGE ===== */
+
+.home-page {
+  justify-content: center;
+}
+
+.home-page .app-title {
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: black;
+  color: black;
+}
+
+.home-tagline {
+  font-family: "Idiqlat", system-ui, sans-serif;
+  font-size: 1.5rem;
+  color: black;
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
+
+.home-description {
+  font-family: "Idiqlat", system-ui, sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: black;
+  max-width: 420px;
+  margin: 0 auto 2rem;
+  text-align: center;
+}
+
+.home-page .home-actions {
+  margin-top: 0;
+}
+
+.home-actions {
+  margin-top: auto;
+  padding: 2rem 0;
+}
+
+.home-actions .upload-button {
+  min-width: 200px;
 }
 
 /* ===== DESCRIPTION (MIDDLE) ===== */
@@ -89,6 +133,7 @@
 }
 
 .upload-container {
+  font-family: "Idiqlat", system-ui, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -96,10 +141,10 @@
   gap: 1rem;
   width: 100%;
   max-width: 320px;
-  background: #8f9ab5;
+  background: rgba(68, 73, 88, 0.621);
   padding: 1.5rem 2rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  border-radius: 0;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
   text-align: center;
 }
 
@@ -117,16 +162,18 @@
 }
 
 .upload-container input[type="file"] {
+  font-family: "Idiqlat", system-ui, sans-serif;
   display: block;
   padding: 0.6rem;
-  background: #334155;
-  border-radius: 8px;
+  background: rgba(51, 65, 85, 0.85);
+  border-radius: 0;
   cursor: pointer;
   color: #e2e8f0;
   font-size: 0.9rem;
   width: 100%;
   max-width: 240px;
   box-sizing: border-box;
+  box-shadow: 0 0 15px hsla(0, 12%, 60%, 0.5);
 }
 
 .upload-container .upload-button {
@@ -142,21 +189,23 @@
 /* ========================= */
 
 .upload-container input {
+  font-family: "Idiqlat", system-ui, sans-serif;
   width: 100%;
   padding: 0.75rem 1rem;
-  border-radius: 12px;              /* ✅ Rounded square */
-  border: 2px solid #334155;
-  background-color: #1e293b;
+  border-radius: 0;
+  border: 2px solid rgba(51, 65, 85, 0.8);
+  background-color: rgba(24, 28, 35, 0.85);
   color: white;
   font-size: 0.95rem;
   outline: none;
   transition: all 0.2s ease;
+  box-shadow: 0 0 15px rgba(41, 33, 33, 0.5);
 }
 
 /* Focus effect */
 .upload-container input:focus {
-  border-color: #00ffcc;
-  box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+  border-color: rgba(255, 25, 0, 0.8);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.7);
 }
 
 /* Placeholder styling */
@@ -165,13 +214,15 @@
 }
 
 .upload-button {
-  background:  #a81103;
+  font-family: "Idiqlat", system-ui, sans-serif;
+  background: rgba(101, 16, 8, 0.9);
   border: none;
   padding: 0.8rem 1.6rem;
-  border-radius: 10px;
+  border-radius: 0;
   font-weight: bold;
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
 .upload-button:hover {
@@ -180,8 +231,9 @@
 }
 
 .upload-button-primary {
-  background: linear-gradient(90deg, #00ffcc, #00aaff);
+  background: linear-gradient(90deg, rgba(0, 255, 204, 0.9), rgba(0, 170, 255, 0.9));
   color: #0f172a;
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.6);
 }
 
 .upload-button:disabled {
@@ -226,10 +278,11 @@
   aspect-ratio: 4 / 3;
   max-height: 500px;
   margin: 0 auto;
-  background: #1e293b;
-  border-radius: 20px;
+  background: rgba(30, 41, 59, 0.85);
+  border-radius: 0;
   overflow: hidden;
-  border: 2px solid #334155;
+  border: 2px solid rgba(51, 65, 85, 0.8);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
 }
 
 .route-result-image {
@@ -273,6 +326,7 @@
 /* ===== RESULT PAGE ACTIONS ===== */
 
 .result-page-title {
+  font-family: "Idiqlat", system-ui, sans-serif;
   margin: 0 0 1rem;
   font-size: 1.5rem;
 }
