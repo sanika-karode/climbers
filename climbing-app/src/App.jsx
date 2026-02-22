@@ -54,6 +54,9 @@ export default function App() {
         <ResultPage
           image={routeData.image}
           holds={routeData.holds}
+          holdType={routeData.holdType}
+          leftHoldIndex={routeData.leftHoldIndex}
+          rightHoldIndex={routeData.rightHoldIndex}
           onBack={() => setRouteData(null)}
         />
       )}
@@ -61,9 +64,7 @@ export default function App() {
         <AnalyzePage
           user={user}
           onLogout={handleLogout}
-          onAnalyze={(image, holds) =>
-            setRouteData({ image, holds })
-          }
+          onAnalyze={(routeData) => setRouteData(routeData)}
         />
       )}
     </>
@@ -222,7 +223,12 @@ function AuthPage({ onLogin }) {
 
 function AnalyzePage({ user, onLogout, onAnalyze }) {
   const [image, setImage] = useState(null);
-  const [holds, setHolds] = useState([]);
+  const [holdType, setHoldType] = useState("one_hand");
+  const [leftHold, setLeftHold] = useState(null);
+  const [rightHold, setRightHold] = useState(null);
+  const [restHolds, setRestHolds] = useState([]);
+  const [scaleStart, setScaleStart] = useState(null);
+  const [scaleEnd, setScaleEnd] = useState(null);
   const [error, setError] = useState("");
 
   const canvasRef = useRef(null);
@@ -237,19 +243,125 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
     }
 
     setError("");
-    setHolds([]);
+    setLeftHold(null);
+    setRightHold(null);
+    setRestHolds([]);
+    setScaleStart(null);
+    setScaleEnd(null);
 
     const reader = new FileReader();
     reader.onload = () => setImage(reader.result);
     reader.readAsDataURL(file);
   };
 
+  const handleHoldTypeChange = (e) => {
+    const value = e.target.value;
+    setHoldType(value);
+    setLeftHold(null);
+    setRightHold(null);
+    setRestHolds([]);
+  };
+
   const handleCanvasClick = (e) => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const xNorm = (e.clientX - rect.left) / rect.width;
     const yNorm = (e.clientY - rect.top) / rect.height;
-    setHolds((prev) => [...prev, { x: xNorm, y: yNorm }]);
+    const point = { x: xNorm, y: yNorm };
+
+    if (!scaleStart) {
+      setScaleStart(point);
+      return;
+    }
+    if (!scaleEnd) {
+      setScaleEnd(point);
+      return;
+    }
+
+    const hold = point;
+    if (holdType === "two_hand") {
+      if (!leftHold) {
+        setLeftHold(hold);
+      } else if (!rightHold) {
+        setRightHold(hold);
+      } else {
+        setRestHolds((prev) => [...prev, hold]);
+      }
+    } else {
+      setRestHolds((prev) => [...prev, hold]);
+    }
+  };
+
+  const holds = holdType === "two_hand"
+    ? [leftHold, rightHold, ...restHolds].filter(Boolean)
+    : restHolds;
+
+  const canAnalyze =
+    scaleStart &&
+    scaleEnd &&
+    holds.length >= 2 &&
+    (holdType === "one_hand" || (leftHold && rightHold));
+
+  const getHoldLabel = (index) => {
+    if (holdType === "two_hand") {
+      if (index === 0) return "L";
+      if (index === 1) return "R";
+      return String(index - 1);
+    }
+    return String(index + 1);
+  };
+
+  const handleUndo = () => {
+    const lastIndex = holds.length - 1;
+    if (lastIndex < 0) return;
+
+    if (holdType === "two_hand") {
+      if (restHolds.length > 0) {
+        setRestHolds((p) => p.slice(0, -1));
+      } else if (rightHold) {
+        setRightHold(null);
+      } else if (leftHold) {
+        setLeftHold(null);
+      }
+    } else {
+      if (restHolds.length > 0) setRestHolds((p) => p.slice(0, -1));
+    }
+  };
+
+  const handleClear = () => {
+    setLeftHold(null);
+    setRightHold(null);
+    setRestHolds([]);
+  };
+
+  const handleAnalyze = () => {
+    if (!canAnalyze || !image) return;
+    onAnalyze({
+      image,
+      holdType,
+      holds,
+      leftHoldIndex: holdType === "two_hand" ? 0 : undefined,
+      rightHoldIndex: holdType === "two_hand" ? 1 : undefined,
+      scaleOneFoot: { start: scaleStart, end: scaleEnd },
+    });
+  };
+
+  const handleClearScale = () => {
+    setScaleStart(null);
+    setScaleEnd(null);
+  };
+
+  const getInstruction = () => {
+    if (!image) return null;
+    if (!scaleStart) return "click the first point to set the 1-foot scale";
+    if (!scaleEnd) return "click the second point to complete the 1-foot scale";
+    if (holdType === "two_hand") {
+      if (!leftHold) return "click on the image to place your LEFT starting hold";
+      if (!rightHold) return "click on the image to place your RIGHT starting hold";
+      return "click to add the remaining holds in climb order";
+    }
+    return "click to add holds in climb order";
   };
 
   useEffect(() => {
@@ -262,6 +374,31 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    if (scaleStart) {
+      const sx = scaleStart.x * canvas.width;
+      const sy = scaleStart.y * canvas.height;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 6, 0, 2 * Math.PI);
+      ctx.fillStyle = "#f59e0b";
+      ctx.fill();
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = 2;
+      if (scaleEnd) {
+        const ex = scaleEnd.x * canvas.width;
+        const ey = scaleEnd.y * canvas.height;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(ex, ey, 6, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = "white";
+        ctx.font = "10px sans-serif";
+        ctx.fillText("1 ft", (sx + ex) / 2 - 12, (sy + ey) / 2 - 8);
+      }
+    }
+
     holds.forEach((hold, index) => {
       const px = hold.x * canvas.width;
       const py = hold.y * canvas.height;
@@ -272,9 +409,9 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
 
       ctx.fillStyle = "white";
       ctx.font = "12px sans-serif";
-      ctx.fillText(index + 1, px - 4, py - 12);
+      ctx.fillText(getHoldLabel(index), px - 4, py - 12);
     });
-  }, [holds, image]);
+  }, [holds, image, holdType, scaleStart, scaleEnd]);
 
   return (
     <div className="app-layout">
@@ -286,20 +423,50 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
         <div className="upload-container">
           <input type="file" accept="image/*" onChange={handleImageUpload} />
 
+          {image && !scaleEnd && getInstruction() && (
+            <p className="hold-instruction">{getInstruction()}</p>
+          )}
+
+          {image && scaleStart && scaleEnd && (
+            <>
+              <button type="button" className="upload-button" onClick={handleClearScale}>
+                Clear 1-foot scale
+              </button>
+
+              <label className="hold-type-label">
+                hold type
+                <select
+                  className="hold-type-select"
+                  value={holdType}
+                  onChange={handleHoldTypeChange}
+                >
+                  <option value="one_hand">one hand hold</option>
+                  <option value="two_hand">two hand hold</option>
+                </select>
+              </label>
+
+              <p className="hold-instruction">{getInstruction()}</p>
+            </>
+          )}
+
           {error && <p className="upload-error">{error}</p>}
 
-          {holds.length > 0 && (
+          {scaleStart && scaleEnd && holds.length > 0 && (
             <>
-              <button type="button" className="upload-button" onClick={() => setHolds((p) => p.slice(0, -1))}>
+              <button type="button" className="upload-button" onClick={handleUndo}>
                 Undo
               </button>
 
-              <button type="button" className="upload-button" onClick={() => setHolds([])}>
+              <button type="button" className="upload-button" onClick={handleClear}>
                 Clear
               </button>
 
-              {holds.length >= 2 && (
-                <button type="button" className="upload-button upload-button-primary" onClick={() => onAnalyze(image, holds)}>
+              {canAnalyze && (
+                <button
+                  type="button"
+                  className="upload-button upload-button-primary"
+                  onClick={handleAnalyze}
+                >
                   Analyze Route
                 </button>
               )}
@@ -311,12 +478,7 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
       {image && (
         <div className="route-result-wrapper">
           <div className="route-display route-result">
-            <img
-              src={image}
-              alt="Wall"
-              className="route-result-image"
-            />
-
+            <img src={image} alt="Wall" className="route-result-image" />
             <canvas
               ref={canvasRef}
               className="route-result-canvas route-result-canvas--clickable"
@@ -339,7 +501,7 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
    RESULT PAGE (NEW)
 ========================= */
 
-function ResultPage({ image, holds, onBack }) {
+function ResultPage({ image, holds, holdType, leftHoldIndex, rightHoldIndex, onBack }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
@@ -448,7 +610,7 @@ function ResultPage({ image, holds, onBack }) {
 
   return (
     <div className="app-layout">
-      <h2 className="result-page-title">✨ This is the most optimized route ✨</h2>
+      <h2 className="result-page-title"><p></p><p></p>This is the most optimized route </h2>
 
       <div className="route-result-wrapper">
         <div className="route-display route-result" ref={containerRef}>

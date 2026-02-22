@@ -18,7 +18,7 @@
   box-sizing: border-box;
 
   font-family: "Idiqlat", system-ui, sans-serif;
-  color: black;
+  color: white;
 
   min-height: 100vh;
 }
@@ -53,7 +53,7 @@
   font-weight: bold;
   margin: 0;
   text-align: center;
-  background: #6c2009;
+  background: rgb(89, 31, 31);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -67,12 +67,13 @@
 .home-page .app-title {
   background: none;
   -webkit-background-clip: unset;
-  -webkit-text-fill-color: black;
+  -webkit-text-fill-color: rgb(89, 31, 31);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
   color: black;
 }
 
 .home-tagline {
-  font-family: "Idiqlat", system-ui, sans-serif;
+  font-family: "Poppins";
   font-size: 1.5rem;
   color: black;
   margin: 0 0 1.5rem;
@@ -80,8 +81,8 @@
 }
 
 .home-description {
-  font-family: "Idiqlat", system-ui, sans-serif;
-  font-size: 1.1rem;
+  font-family: "Story Script";
+  font-size: 1.3rem;
   line-height: 1.6;
   color: black;
   max-width: 420px;
@@ -213,6 +214,43 @@
   color: #94a3b8;
 }
 
+/* Hold type and top hold selects */
+.hold-type-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #d3d3d3;
+  width: 100%;
+  max-width: 240px;
+}
+
+.hold-type-select {
+  font-family: "Idiqlat", system-ui, sans-serif;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0;
+  border: 2px solid rgba(51, 65, 85, 0.8);
+  background-color: rgba(24, 28, 35, 0.85);
+  color: white;
+  font-size: 0.95rem;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(41, 33, 33, 0.5);
+}
+
+.hold-type-select:focus {
+  border-color: rgba(255, 25, 0, 0.8);
+}
+
+.hold-instruction {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #b4b4b4;
+  text-align: center;
+}
+
 .upload-button {
   font-family: "Idiqlat", system-ui, sans-serif;
   background: rgba(101, 16, 8, 0.9);
@@ -220,6 +258,7 @@
   padding: 0.8rem 1.6rem;
   border-radius: 0;
   font-weight: bold;
+  color: white;
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease;
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
@@ -231,8 +270,8 @@
 }
 
 .upload-button-primary {
-  background: linear-gradient(90deg, rgba(0, 255, 204, 0.9), rgba(0, 170, 255, 0.9));
-  color: #0f172a;
+  background: linear-gradient(90deg, rgba(227, 190, 55, 0.9), rgba(255, 145, 35, 0.9));
+  color: white;
   box-shadow: 0 0 18px rgba(255, 255, 255, 0.6);
 }
 
