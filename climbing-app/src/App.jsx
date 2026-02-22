@@ -80,13 +80,37 @@ function HomePage({ onGetStarted }) {
     <div className="app-layout home-page">
       <header className="app-header">
         <h1 className="app-title">ASCEND</h1>
+        <p className="home-tagline">just keep climbing</p>
       </header>
 
-      <p className="home-tagline">just keep climbing</p>
-
-      <p className="home-description">
-        <p>Climb a problem in 3 easy steps.<br />1. Take a photo<br />2. Set your holds<br />3. Climb!</p>
-      </p>
+      <div className="home-steps">
+        <div className="home-step-box">
+          <div className="home-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+          </div>
+          <p className="home-step-text">Take a photo</p>
+        </div>
+        <div className="home-step-box">
+          <div className="home-step-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.86a.5.5 0 0 0-.85.35z" />
+            </svg>
+          </div>
+          <p className="home-step-text">Set your holds</p>
+        </div>
+        <div className="home-step-box">
+          <div className="home-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+          <p className="home-step-text">Climb!</p>
+        </div>
+      </div>
 
       <div className="home-actions">
         <button type="button" className="upload-button" onClick={onGetStarted}>

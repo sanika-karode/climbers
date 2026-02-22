@@ -42,6 +42,7 @@
   padding: 2rem 0 1.5rem;
   width: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
@@ -76,17 +77,50 @@
   font-family: "Poppins";
   font-size: 1.5rem;
   color: black;
-  margin: 0 0 1.5rem;
+  margin: 0.5rem 0 0;
   text-align: center;
 }
 
-.home-description {
-  font-family: "Story Script";
-  font-size: 1.3rem;
-  line-height: 1.6;
-  color: black;
-  max-width: 420px;
+.home-steps {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 1.25rem;
+  max-width: 600px;
   margin: 0 auto 2rem;
+}
+
+.home-step-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1.25rem;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 40px rgba(0, 0, 0, 0.08);
+  min-width: 140px;
+  flex: 1;
+  flex-shrink: 0;
+}
+
+.home-step-icon {
+  width: 48px;
+  height: 48px;
+  color: rgb(89, 31, 31);
+  margin-bottom: 0.75rem;
+}
+
+.home-step-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.home-step-text {
+  font-family: "Story Script";
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: black;
+  margin: 0;
   text-align: center;
 }
 
