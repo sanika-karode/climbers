@@ -35,29 +35,35 @@ def aStar(G: nx.DiGraph, climber: Climber, start_left: int, start_right: int,  e
         if state_key in visited and visited[state_key] <= g:
             continue
         visited[state_key] = g
-        #best left hand move
+        def is_match(nl, nr):
+            return nl == nr
+
+        def allowed_match(nl, nr):
+            return nl == end_id and nr == end_id
+
+        # best left hand move (no matches except goal)
         if left_id != end_id:
             for next_left in G.neighbors(left_id):
+                new_state = (next_left, right_id)
+                if is_match(next_left, right_id) and not allowed_match(next_left, right_id):
+                    continue
                 if get_dist(G, next_left, right_id) <= climber.arm_span:
-                    new_state = (next_left, right_id)
                     edge_weight = G[left_id][next_left]['weight']
                     new_g = g + edge_weight
-
                     h_val = max(get_dist(G, next_left, end_id), get_dist(G, right_id, end_id))
+                    heapq.heappush(pq, (new_g + h_val, new_g, new_state, path + [new_state]))
 
-                    heapq.heappush(pq, (new_g + h_val,new_g, new_state, path + [new_state] ))
-
-        #best right hand move
+        # best right hand move (no matches except goal)
         if right_id != end_id:
             for next_right in G.neighbors(right_id):
+                new_state = (left_id, next_right)
+                if is_match(left_id, next_right) and not allowed_match(left_id, next_right):
+                    continue
                 if get_dist(G, next_right, left_id) <= climber.arm_span:
-                    new_state = (left_id, next_right)
                     edge_weight = G[right_id][next_right]['weight']
                     new_g = g + edge_weight
-
                     h_val = max(get_dist(G, left_id, end_id), get_dist(G, next_right, end_id))
-
-                    heapq.heappush(pq, (new_g + h_val,new_g, new_state, path + [new_state] ))
+                    heapq.heappush(pq, (new_g + h_val, new_g, new_state, path + [new_state]))
 
     return None #no path found
 

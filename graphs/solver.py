@@ -27,15 +27,14 @@ def generate_instruction(G : nx.DiGraph, path_states: List[Tuple[int, int]], cli
         from_hold = G.nodes[from_id]['data']
         stat_hold = G.nodes[stationary_id]['data']
 
-        move_type_label = "Hand Match" if to_id == stationary_id else "Hand Move"
-        #distance and cost
+        # distance and cost (matches disallowed by search, so to_id != stationary_id)
         edge_data = G[from_id][to_id]
         dist = edge_data['distance']
         cost = edge_data['weight']
 
-        #movement ratio
+        # movement technique from reach ratio
         ratio = reach_ratio(dist, max_reach)
-        tech = "Match" if to_id == stationary_id else technique_from_ratio(ratio)
+        tech = technique_from_ratio(ratio)
 
         # Build step
         step = RouteStep(
