@@ -27,6 +27,14 @@ def generate_route_plan(wall, climber, start_left_hold_id, start_right_hold_id, 
     )
 
     G = build_climbing_graph(engine_holds, engine_climber)
+
+    # Ensure left hand is on left-most hold (smaller x), right on right-most
+    hold_by_id = {h.id: h for h in engine_holds}
+    x_left = hold_by_id.get(start_left_hold_id)
+    x_right = hold_by_id.get(start_right_hold_id)
+    if x_left and x_right and x_left.x > x_right.x:
+        start_left_hold_id, start_right_hold_id = start_right_hold_id, start_left_hold_id
+
     path_states = aStar(G, engine_climber, start_left_hold_id, start_right_hold_id, end_hold_id)
     if path_states is None:
         raise ValueError(

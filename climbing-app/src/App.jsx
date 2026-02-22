@@ -343,7 +343,14 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
   };
 
   const holds = holdType === "two_hand"
-    ? [leftHold, rightHold, ...restHolds].filter(Boolean)
+    ? (() => {
+        const startPair = [leftHold, rightHold].filter(Boolean);
+        if (startPair.length === 2) {
+          const [leftMost, rightMost] = [...startPair].sort((a, b) => a.x - b.x);
+          return [leftMost, rightMost, ...restHolds];
+        }
+        return [leftHold, rightHold, ...restHolds].filter(Boolean);
+      })()
     : restHolds;
 
   const canAnalyze =
@@ -364,9 +371,21 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
 
   const handleUpdateHoldType = (index, newHoldType) => {
     if (holdType === "two_hand") {
-      if (index === 0) setLeftHold((h) => (h ? { ...h, holdType: newHoldType } : null));
-      else if (index === 1) setRightHold((h) => (h ? { ...h, holdType: newHoldType } : null));
-      else setRestHolds((prev) => prev.map((h, i) => (i === index - 2 ? { ...h, holdType: newHoldType } : h)));
+      if (index === 0) {
+        if (leftHold && rightHold) {
+          (leftHold.x <= rightHold.x ? setLeftHold : setRightHold)((h) => (h ? { ...h, holdType: newHoldType } : null));
+        } else {
+          setLeftHold((h) => (h ? { ...h, holdType: newHoldType } : null));
+        }
+      } else if (index === 1) {
+        if (leftHold && rightHold) {
+          (leftHold.x <= rightHold.x ? setRightHold : setLeftHold)((h) => (h ? { ...h, holdType: newHoldType } : null));
+        } else {
+          setRightHold((h) => (h ? { ...h, holdType: newHoldType } : null));
+        }
+      } else {
+        setRestHolds((prev) => prev.map((h, i) => (i === index - 2 ? { ...h, holdType: newHoldType } : h)));
+      }
     } else {
       setRestHolds((prev) => prev.map((h, i) => (i === index ? { ...h, holdType: newHoldType } : h)));
     }
@@ -695,11 +714,11 @@ function ResultPage({ image, holds, holdType, leftHoldIndex, rightHoldIndex, rou
     ctx.clearRect(0, 0, cw, ch);
 
     if (route && route.length > 0) {
-      ctx.strokeStyle = "rgba(255,255,255,0.9)";
       ctx.lineWidth = 4;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       route.forEach((step) => {
+        ctx.strokeStyle = step.moved_limb === "left_hand" ? "#3b82f6" : "#ef4444";
         const fromH = getPosByHoldId(step.from_hold);
         const toH = getPosByHoldId(step.to_hold);
         if (fromH && toH) {
