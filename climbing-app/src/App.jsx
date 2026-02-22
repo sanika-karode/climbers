@@ -218,6 +218,12 @@ function AuthPage({ onLogin }) {
 }
 
 /* =========================
+   HOLD TYPES (for backend)
+========================= */
+
+const HOLD_TYPES = ["jug", "crimp", "sloper", "pinch"];
+
+/* =========================
    ANALYZE PAGE
 ========================= */
 
@@ -279,7 +285,7 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
       return;
     }
 
-    const hold = point;
+    const hold = { ...point, holdType: "jug" };
     if (holdType === "two_hand") {
       if (!leftHold) {
         setLeftHold(hold);
@@ -309,7 +315,18 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
       if (index === 1) return "R";
       return String(index - 1);
     }
-    return String(index + 1);
+    if (index === 0) return "start";
+    return `hold ${index}`;
+  };
+
+  const handleUpdateHoldType = (index, newHoldType) => {
+    if (holdType === "two_hand") {
+      if (index === 0) setLeftHold((h) => (h ? { ...h, holdType: newHoldType } : null));
+      else if (index === 1) setRightHold((h) => (h ? { ...h, holdType: newHoldType } : null));
+      else setRestHolds((prev) => prev.map((h, i) => (i === index - 2 ? { ...h, holdType: newHoldType } : h)));
+    } else {
+      setRestHolds((prev) => prev.map((h, i) => (i === index ? { ...h, holdType: newHoldType } : h)));
+    }
   };
 
   const handleUndo = () => {
@@ -341,8 +358,8 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
       image,
       holdType,
       holds,
-      leftHoldIndex: holdType === "two_hand" ? 0 : undefined,
-      rightHoldIndex: holdType === "two_hand" ? 1 : undefined,
+      leftHoldIndex: holdType === "two_hand" ? 0 : 0,
+      rightHoldIndex: holdType === "two_hand" ? 1 : 0,
       scaleOneFoot: { start: scaleStart, end: scaleEnd },
     });
   };
@@ -361,7 +378,8 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
       if (!rightHold) return "click on the image to place your RIGHT starting hold";
       return "click to add the remaining holds in climb order";
     }
-    return "click to add holds in climb order";
+    if (restHolds.length === 0) return "click to place your START hold";
+    return "click to add the next hold in climb order";
   };
 
   useEffect(() => {
@@ -409,7 +427,9 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
 
       ctx.fillStyle = "white";
       ctx.font = "12px sans-serif";
-      ctx.fillText(getHoldLabel(index), px - 4, py - 12);
+      ctx.textAlign = "center";
+      ctx.fillText(getHoldLabel(index), px, py - 14);
+      ctx.textAlign = "left";
     });
   }, [holds, image, holdType, scaleStart, scaleEnd]);
 
@@ -446,6 +466,28 @@ function AnalyzePage({ user, onLogout, onAnalyze }) {
               </label>
 
               <p className="hold-instruction">{getInstruction()}</p>
+
+              {holds.length > 0 && (
+                <div className="hold-type-list">
+                  <span className="hold-type-list-title">Hold types</span>
+                  {holds.map((hold, index) => (
+                    <div key={index} className="hold-type-row">
+                      <span className="hold-type-label-text">{getHoldLabel(index)}</span>
+                      <select
+                        className="hold-type-select hold-type-select-small"
+                        value={hold.holdType || "jug"}
+                        onChange={(e) => handleUpdateHoldType(index, e.target.value)}
+                      >
+                        {HOLD_TYPES.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
             </>
           )}
 
